@@ -141,6 +141,105 @@ export function renderTopbar(): HTMLElement {
           </div>
         </div>
       </div>
+
+      <!-- Hamburger Menu Button -->
+      <button class="topbar-btn hamburger-btn" id="mobile-menu-toggle" aria-label="Menú" style="display: none; border-radius: 50% !important; width: 34px; height: 34px; align-items: center; justify-content: center; margin-left: 8px;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <line x1="3" y1="12" x2="21" y2="12"></line>
+          <line x1="3" y1="6" x2="21" y2="6"></line>
+          <line x1="3" y1="18" x2="21" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Mobile Drawer Menu Overlay -->
+    <div class="mobile-drawer" id="mobile-drawer-menu">
+      <div class="drawer-overlay" id="drawer-overlay"></div>
+      <div class="drawer-content">
+        <div class="drawer-header">
+          <span class="topbar-logo" style="margin-left:0;"><span class="logo-lightning">⚡</span> ScrumBoard Pro</span>
+          <button class="topbar-btn close-drawer-btn" id="close-drawer-btn" style="border-radius: 50% !important; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+        
+        <div class="drawer-body">
+          <!-- Active Project Section -->
+          <div class="drawer-section" style="margin-bottom: 24px;">
+            <div class="drawer-section-title" style="font-size: 10px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 8px;">Proyecto Activo</div>
+            <div class="project-selector" id="drawer-project-btn" style="width:100%; justify-content:space-between; display: flex; align-items: center; padding: 10px 16px; background: rgba(168, 85, 247, 0.05); border: 1px solid var(--border); border-radius: 20px; cursor: pointer;">
+              <span class="proj-name" style="font-size: 12px; font-weight: 700; color: var(--text-secondary); max-width: 80%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${activeProject?.name || 'Selecciona Proyecto'}</span>
+              <span class="proj-arrow" style="font-size: 9px; color: var(--text-muted);">▼</span>
+            </div>
+            <div class="drawer-project-list" id="drawer-project-list" style="display:none; flex-direction:column; gap:4px; padding-left:8px; border-left:1px solid var(--border); margin-top:8px;">
+              ${allProjects.map(p => `
+                <div class="dropdown-item ${activeProject?.id === p.id ? 'active' : ''}" data-pid="${p.id}" style="padding: 10px 14px; border-radius:var(--radius-sm); font-size: 12px; cursor: pointer; transition: all 0.2s;">
+                  <div style="font-weight: 600;">${p.name}</div>
+                </div>
+              `).join('')}
+              <div class="dropdown-item add-proj-action" style="color: var(--accent-light); font-weight:600; padding: 10px 14px; font-size: 12px; cursor: pointer;">
+                + Crear Nuevo Proyecto
+              </div>
+            </div>
+          </div>
+
+          <!-- Navigation Links Section -->
+          <div class="drawer-section" style="margin-bottom: 24px;">
+            <div class="drawer-section-title" style="font-size: 10px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 8px;">Navegación</div>
+            <nav class="drawer-nav-links" style="display:flex; flex-direction:column; gap:8px;">
+              ${navItems.map(({ page, label }) => `
+                <a class="nav-link-item ${currentPage === page ? 'active' : ''}" data-page="${page}" href="#${page}" style="display: flex; align-items: center; gap: 10px; padding: 12px 18px; border-radius: 20px; font-size: 13px; font-weight: 600; color: var(--text-muted); text-decoration: none; border: 1px solid transparent; transition: all 0.2s;">
+                  ${ICONS[page]} <span>${label}</span>
+                </a>
+              `).join('')}
+            </nav>
+          </div>
+
+          <!-- Cloud / DB Sync Section -->
+          <div class="drawer-section" style="margin-bottom: 24px;">
+            <div class="drawer-section-title" style="font-size: 10px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 8px;">Datos y Nube</div>
+            <div class="db-status-bar" style="border:none; padding:0; margin-bottom:12px;">
+              ${dbStatusHTML}
+            </div>
+            <div style="display:flex; flex-direction:column; gap:6px;">
+              <div class="dropdown-item drawer-db-action" id="drawer-db-backup-btn" style="border: 1px solid var(--border); border-radius:8px; padding:10px 14px; font-size: 12px; cursor: pointer; color: var(--text-secondary);">
+                📤 Exportar Respaldos (.json)
+              </div>
+              <div class="dropdown-item drawer-db-action" id="drawer-db-import-btn-trigger" style="border: 1px solid var(--border); border-radius:8px; padding:10px 14px; font-size: 12px; cursor: pointer; color: var(--text-secondary);">
+                📥 Importar Respaldos (.json)
+              </div>
+              <div class="dropdown-item drawer-db-action" id="drawer-db-supabase-btn" style="border: 1px solid var(--border); border-radius:8px; padding:10px 14px; font-size: 12px; cursor: pointer; color: var(--accent-light); font-weight: 700;">
+                ☁️ Conectar Supabase
+              </div>
+              <div class="dropdown-item drawer-db-action" id="drawer-db-reset-btn" style="border: 1px solid var(--border); border-radius:8px; padding:10px 14px; font-size: 12px; cursor: pointer; color: var(--red); font-weight: 600;">
+                ⚠️ Restablecer Semilla
+              </div>
+            </div>
+          </div>
+
+          <!-- Profile and Logout Section -->
+          <div class="drawer-section" style="margin-top: 16px; padding-top:20px; border-top:1px solid var(--border);">
+            <div class="topbar-profile" style="cursor:default; pointer-events:none; display:flex; align-items:center; gap:10px;">
+              <div class="avatar" style="background:var(--accent)">J</div>
+              <div class="profile-info">
+                <div class="profile-name" style="font-size:12px; font-weight:700; color:var(--text-primary);">Juan (SM)</div>
+                <div class="profile-role" style="font-size:9.5px; color:var(--text-muted);">Scrum Master</div>
+              </div>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:6px; margin-top:16px;">
+              <div class="dropdown-item drawer-db-action" id="drawer-prof-team-btn" style="border: 1px solid var(--border); border-radius:8px; padding:10px 14px; font-size: 12px; cursor: pointer; color: var(--text-secondary);">
+                👥 Ver Equipo
+              </div>
+              <div class="dropdown-item drawer-db-action" id="drawer-prof-logout-btn" style="border: 1px solid var(--border); border-radius:8px; padding:10px 14px; font-size: 12px; cursor: pointer; color: var(--red); font-weight: 600;">
+                🚪 Cerrar Sesión (Landing)
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   `;
 
@@ -158,7 +257,110 @@ export function renderTopbar(): HTMLElement {
     navigate('landing');
   });
 
-  // Profile Dropdown Toggle Logic
+  // ============================================================
+  // MOBILE DRAWER EVENT LISTENERS
+  // ============================================================
+  const drawer = topbar.querySelector('#mobile-drawer-menu') as HTMLElement;
+  const drawerOverlay = topbar.querySelector('#drawer-overlay') as HTMLElement;
+  const drawerCloseBtn = topbar.querySelector('#close-drawer-btn') as HTMLElement;
+  const menuToggle = topbar.querySelector('#mobile-menu-toggle') as HTMLElement;
+
+  const openDrawer = () => drawer?.classList.add('open');
+  const closeDrawer = () => drawer?.classList.remove('open');
+
+  menuToggle?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    openDrawer();
+  });
+  drawerOverlay?.addEventListener('click', closeDrawer);
+  drawerCloseBtn?.addEventListener('click', closeDrawer);
+
+  // Project selector toggle inside drawer
+  const drawerProjBtn = topbar.querySelector('#drawer-project-btn') as HTMLElement;
+  const drawerProjList = topbar.querySelector('#drawer-project-list') as HTMLElement;
+  drawerProjBtn?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const isHidden = drawerProjList.style.display === 'none';
+    drawerProjList.style.display = isHidden ? 'flex' : 'none';
+  });
+
+  // Project item switch inside drawer
+  drawerProjList?.querySelectorAll('.dropdown-item[data-pid]').forEach(item => {
+    item.addEventListener('click', () => {
+      const pid = (item as HTMLElement).dataset.pid!;
+      const state = stateStore.get();
+      stateStore.set({ ...state, activeProjectId: pid, activeSprintId: null });
+      showToast('Proyecto cambiado exitosamente', 'success');
+      closeDrawer();
+      const current = window.location.hash.replace('#', '') || 'dashboard';
+      navigate(current);
+    });
+  });
+
+  // Create project from drawer
+  drawerProjList?.querySelector('.add-proj-action')?.addEventListener('click', () => {
+    closeDrawer();
+    openNewProjectModal(() => {
+      const current = window.location.hash.replace('#', '') || 'dashboard';
+      navigate(current);
+    });
+  });
+
+  // Navigation Links inside drawer
+  drawer?.querySelectorAll('.drawer-nav-links .nav-link-item').forEach(el => {
+    el.addEventListener('click', (e) => {
+      e.preventDefault();
+      const page = (el as HTMLElement).dataset.page!;
+      closeDrawer();
+      navigate(page);
+    });
+  });
+
+  // DBSync export in drawer
+  drawer?.querySelector('#drawer-db-backup-btn')?.addEventListener('click', () => {
+    closeDrawer();
+    databaseManager.exportBackup();
+    showToast('Respaldo descargado con éxito', 'success');
+  });
+
+  // DBSync import in drawer
+  drawer?.querySelector('#drawer-db-import-btn-trigger')?.addEventListener('click', () => {
+    closeDrawer();
+    // Desktop fileInput from global scope (in topbar.ts)
+    const fileInput = topbar.querySelector('#db-file-input') as HTMLInputElement;
+    fileInput?.click();
+  });
+
+  // Connect Supabase in drawer
+  drawer?.querySelector('#drawer-db-supabase-btn')?.addEventListener('click', () => {
+    closeDrawer();
+    openSupabaseModal();
+  });
+
+  // Reset database seed in drawer
+  drawer?.querySelector('#drawer-db-reset-btn')?.addEventListener('click', async () => {
+    closeDrawer();
+    if (confirm('⚠️ ¿Estás seguro de restablecer la base de datos? Se borrarán todos los cambios locales y remotos en Supabase, re-sembrando los datos por defecto.')) {
+      await resetDatabaseToSeed(seedData);
+      showToast('Base de datos restablecida exitosamente', 'success');
+      setTimeout(() => window.location.reload(), 800);
+    }
+  });
+
+  // Team Page inside drawer
+  drawer?.querySelector('#drawer-prof-team-btn')?.addEventListener('click', () => {
+    closeDrawer();
+    navigate('team');
+  });
+
+  // Logout inside drawer
+  drawer?.querySelector('#drawer-prof-logout-btn')?.addEventListener('click', () => {
+    closeDrawer();
+    navigate('landing');
+    showToast('Sesión cerrada correctamente', 'success');
+  });
+
+  // Profile Dropdown Toggle Logic (Desktop)
   const profBtn = topbar.querySelector('#profile-dropdown-btn') as HTMLElement;
   const profMenu = topbar.querySelector('#profile-dropdown-menu') as HTMLElement;
 
