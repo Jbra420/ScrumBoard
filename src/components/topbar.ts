@@ -6,7 +6,7 @@ import { navigate, getActiveProject } from '../router/index';
 import { stateStore, projectStore, sprintStore, epicStore, databaseManager, resetDatabaseToSeed, generateId } from '../store/storage';
 import { seedData } from '../data/seed';
 import { showToast, showModal } from './modal';
-import { supabaseConfig, testSupabaseConnection, uploadLocalToSupabase, downloadCloudToLocal } from '../store/supabase';
+import { supabaseConfig, testSupabaseConnection, uploadLocalToSupabase, downloadCloudToLocal, syncCloudBidirectional } from '../store/supabase';
 
 const ICONS: Record<string, string> = {
   dashboard: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>`,
@@ -17,6 +17,7 @@ const ICONS: Record<string, string> = {
   burndown: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>`,
   projects: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M2 7l10-5 10 5-10 5z"/><path d="M6 9.5v7l6 3 6-3v-7"/></svg>`,
   database: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22c5.523 0 10-2.239 10-5V7c0-2.761-4.477-5-10-5S2 4.239 2 7v10c0 2.761 4.477 5 10 5z"/><path d="M22 7c0 2.761-4.477 5-10 5S2 9.761 2 7"/><path d="M2 12c0 2.761 4.477 5 10 5s10-2.239 10-5"/></svg>`,
+  cloudSync: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="display: block; min-width: 15px; min-height: 15px;"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l.56-.56"/></svg>`,
 };
 
 export function renderTopbar(): HTMLElement {
@@ -44,6 +45,38 @@ export function renderTopbar(): HTMLElement {
   const dbStatusHTML = sbEnabled 
     ? `<span style="display:inline-block; width:6px; height:6px; background:#C084FC; border-radius:50%; margin-right:4px;"></span> <span style="font-size:10px; color: var(--accent-light); font-weight:700;">Nube Supabase Sincronizada</span>` 
     : `<span style="display:inline-block; width:6px; height:6px; background:#34D399; border-radius:50%; margin-right:4px;"></span> <span style="font-size:10px; color: var(--green); font-weight:700;">IndexedDB Local Activa</span>`;
+
+  const syncBtnHTML = sbEnabled 
+    ? `
+      <!-- Quick Cloud Sync Button -->
+      <button class="btn btn-secondary btn-sm sync-cloud-btn enabled" id="topbar-sync-btn" title="Sincronizar Cambios con Supabase (Subir y Actualizar)" style="gap: 6px; padding: 6px 14px; border-radius: 20px; font-size: 11px; font-weight: 700; border-color: rgba(168, 85, 247, 0.3); background: rgba(168, 85, 247, 0.05); color: var(--accent-light);">
+        <span class="sync-icon-wrapper" style="display: inline-flex; align-items: center; justify-content: center;">${ICONS.cloudSync}</span>
+        <span class="sync-label-text">Sincronizar Nube</span>
+      </button>
+    `
+    : `
+      <!-- Quick Cloud Sync Button -->
+      <button class="btn btn-secondary btn-sm sync-cloud-btn disabled" id="topbar-sync-btn" title="Configurar y Conectar Supabase" style="gap: 6px; padding: 6px 14px; border-radius: 20px; font-size: 11px; font-weight: 700; color: var(--text-muted); border-color: var(--border); background: rgba(255, 255, 255, 0.02); opacity: 0.85;">
+        <span class="sync-icon-wrapper" style="display: inline-flex; align-items: center; justify-content: center; color: var(--yellow);">${ICONS.cloudSync}</span>
+        <span class="sync-label-text">Conectar Nube</span>
+      </button>
+    `;
+
+  const drawerSyncBtnHTML = sbEnabled 
+    ? `
+      <!-- Quick Drawer Sync Button -->
+      <button class="btn btn-primary btn-sm drawer-sync-btn enabled" id="drawer-sync-btn" style="margin-bottom: 12px; justify-content: center; font-size:11px; padding: 8px 12px; gap: 8px; border-radius: 12px; width: 100%;">
+        <span class="sync-icon-wrapper" style="display:inline-flex; align-items: center; justify-content: center;">${ICONS.cloudSync}</span>
+        <span>Sincronizar Nube</span>
+      </button>
+    `
+    : `
+      <!-- Quick Drawer Sync Button -->
+      <button class="btn btn-secondary btn-sm drawer-sync-btn disabled" id="drawer-sync-btn" style="margin-bottom: 12px; justify-content: center; font-size:11px; padding: 8px 12px; gap: 8px; border-radius: 12px; width: 100%;">
+        <span class="sync-icon-wrapper" style="display:inline-flex; align-items: center; justify-content: center; color: var(--yellow);">${ICONS.cloudSync}</span>
+        <span>Conectar Nube</span>
+      </button>
+    `;
 
   topbar.innerHTML = `
     <!-- Glowing micro loading progress bar -->
@@ -88,6 +121,8 @@ export function renderTopbar(): HTMLElement {
     
     <!-- Right Actions / Clock / User -->
     <div class="topbar-right">
+      ${syncBtnHTML}
+
       <!-- Database Management Hub Dropdown -->
       <div class="db-manager-wrap">
         <button class="btn btn-secondary btn-icon btn-sm topbar-btn" id="db-dropdown-btn" title="Base de Datos y Nube">
@@ -204,6 +239,7 @@ export function renderTopbar(): HTMLElement {
             <div class="db-status-bar" style="border:none; padding:0; margin-bottom:12px;">
               ${dbStatusHTML}
             </div>
+            ${drawerSyncBtnHTML}
             <div style="display:flex; flex-direction:column; gap:6px;">
               <div class="dropdown-item drawer-db-action" id="drawer-db-backup-btn">
                 📤 Exportar Respaldos (.json)
@@ -540,6 +576,79 @@ export function renderTopbar(): HTMLElement {
   };
   updateTime();
   setInterval(updateTime, 1000);
+
+  // ============================================================
+  // CLOUD SYNC FLOW & EVENT BINDINGS (Upload & Download Sync)
+  // ============================================================
+  const handleSyncFlow = async () => {
+    if (!supabaseConfig.isEnabled()) {
+      showToast('Sincronización inactiva. Configura Supabase para conectar tus dispositivos.', 'info');
+      openSupabaseModal();
+      return;
+    }
+
+    const syncBtns = topbar.querySelectorAll('#topbar-sync-btn, #drawer-sync-btn');
+    const icons = topbar.querySelectorAll('.sync-icon-wrapper');
+    const topLoader = topbar.querySelector('#topbar-loader') as HTMLElement;
+
+    // Disable buttons and trigger spinning animation
+    syncBtns.forEach(btn => (btn as HTMLButtonElement).disabled = true);
+    icons.forEach(icon => icon.classList.add('spinning'));
+    if (topLoader) {
+      topLoader.style.width = '40%';
+      topLoader.style.background = 'linear-gradient(90deg, var(--accent), var(--cyan))';
+    }
+
+    showToast('Sincronizando con la nube (Subiendo y Actualizando)...', 'info');
+
+    const result = await syncCloudBidirectional();
+
+    if (result.success) {
+      if (topLoader) {
+        topLoader.style.width = '100%';
+        topLoader.style.background = 'linear-gradient(90deg, var(--green), var(--teal))';
+      }
+      showToast('¡Sincronización exitosa! Todos tus dispositivos están al día. 🚀', 'success');
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
+    } else {
+      if (topLoader) {
+        topLoader.style.width = '0%';
+      }
+      syncBtns.forEach(btn => (btn as HTMLButtonElement).disabled = false);
+      icons.forEach(icon => icon.classList.remove('spinning'));
+      showToast(`Error al sincronizar: ${result.error}`, 'error');
+    }
+  };
+
+  // Bind desktop sync button click
+  topbar.querySelector('#topbar-sync-btn')?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    handleSyncFlow();
+  });
+
+  // Bind mobile drawer sync button (touch + click hybrid)
+  const drawerSyncBtn = topbar.querySelector('#drawer-sync-btn') as HTMLElement;
+  if (drawerSyncBtn) {
+    let touchTriggered = false;
+    drawerSyncBtn.addEventListener('touchstart', (e) => {
+      touchTriggered = true;
+      e.stopPropagation();
+      closeDrawer();
+      handleSyncFlow();
+    }, { passive: true });
+    
+    drawerSyncBtn.addEventListener('click', (e) => {
+      if (touchTriggered) {
+        touchTriggered = false;
+        return;
+      }
+      e.stopPropagation();
+      closeDrawer();
+      handleSyncFlow();
+    });
+  }
 
   return topbar;
 }

@@ -1374,3 +1374,71 @@ canvas.burndown-chart{width:100%!important;max-height:300px}
   color: var(--text-primary);
 }
 
+/* ============================================================
+   CLOUD SYNC SYSTEM PREMIUM STYLES & MICROMOTION ANIMATIONS
+   ============================================================ */
+
+/* Spinning animation for Sync Icon */
+.spinning svg,
+.spinning {
+  animation: spinSync 1s linear infinite !important;
+}
+
+@keyframes spinSync {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Premium styling for Desktop Sync Button */
+.sync-cloud-btn {
+  position: relative;
+  transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+  overflow: hidden;
+}
+
+.sync-cloud-btn.enabled:hover {
+  border-color: var(--accent-light) !important;
+  background: rgba(168, 85, 247, 0.12) !important;
+  box-shadow: 0 0 15px var(--accent-glow) !important;
+  transform: translateY(-1px);
+}
+
+.sync-cloud-btn.disabled:hover {
+  border-color: var(--yellow) !important;
+  background: rgba(251, 191, 36, 0.05) !important;
+  box-shadow: 0 0 15px rgba(251, 191, 36, 0.15) !important;
+  color: var(--text-primary) !important;
+  transform: translateY(-1px);
+}
+
+/* Premium styling for Mobile Drawer Sync Button */
+.drawer-sync-btn {
+  transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+  border: 1px solid transparent !important;
+}
+
+.drawer-sync-btn.enabled {
+  background: linear-gradient(135deg, var(--accent), var(--indigo)) !important;
+  box-shadow: 0 4px 15px var(--accent-glow) !important;
+  color: white !important;
+}
+
+.drawer-sync-btn.enabled:hover {
+  box-shadow: 0 6px 20px rgba(168, 85, 247, 0.4) !important;
+  transform: translateY(-1px);
+}
+
+.drawer-sync-btn.disabled {
+  background: rgba(255, 255, 255, 0.02) !important;
+  border-color: var(--border) !important;
+  color: var(--text-muted) !important;
+}
+
+.drawer-sync-btn.disabled:hover {
+  border-color: var(--yellow) !important;
+  color: var(--text-primary) !important;
+  background: rgba(251, 191, 36, 0.04) !important;
+  box-shadow: 0 0 15px rgba(251, 191, 36, 0.1) !important;
+}
+
+

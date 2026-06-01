@@ -243,3 +243,35 @@ export async function downloadCloudToLocal(): Promise<{ success: boolean; error?
     return { success: false, error: err.message || 'Error de sincronización de red.' };
   }
 }
+
+/**
+ * Performs a complete bidirectional cloud sync:
+ * 1. Uploads local IndexedDB data to Supabase.
+ * 2. Downloads all data from Supabase to overwrite local IndexedDB.
+ */
+export async function syncCloudBidirectional(): Promise<{ success: boolean; error?: string }> {
+  const sb = getSupabase();
+  if (!sb) {
+    return { success: false, error: 'Supabase no está configurado o habilitado.' };
+  }
+
+  try {
+    // 1. Upload local changes to cloud
+    const uploadResult = await uploadLocalToSupabase();
+    if (!uploadResult.success) {
+      return { success: false, error: `Error al subir cambios locales: ${uploadResult.error}` };
+    }
+
+    // 2. Download newest cloud data and update local storage & memory
+    const downloadResult = await downloadCloudToLocal();
+    if (!downloadResult.success) {
+      return { success: false, error: `Error al descargar desde la nube: ${downloadResult.error}` };
+    }
+
+    return { success: true };
+  } catch (err: any) {
+    console.error('Failed bidirectional cloud synchronization:', err);
+    return { success: false, error: err.message || 'Error inesperado de sincronización.' };
+  }
+}
+
