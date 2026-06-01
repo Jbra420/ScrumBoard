@@ -258,27 +258,41 @@ export function renderTopbar(): HTMLElement {
   });
 
   // ============================================================
-  // MOBILE DRAWER EVENT LISTENERS
+  // MOBILE DRAWER EVENT LISTENERS (TOUCH + CLICK HYBRID COMPATIBLE)
   // ============================================================
   const drawer = topbar.querySelector('#mobile-drawer-menu') as HTMLElement;
-  const drawerOverlay = topbar.querySelector('#drawer-overlay') as HTMLElement;
-  const drawerCloseBtn = topbar.querySelector('#close-drawer-btn') as HTMLElement;
-  const menuToggle = topbar.querySelector('#mobile-menu-toggle') as HTMLElement;
+  const drawerProjList = topbar.querySelector('#drawer-project-list') as HTMLElement;
 
   const openDrawer = () => drawer?.classList.add('open');
   const closeDrawer = () => drawer?.classList.remove('open');
 
-  menuToggle?.addEventListener('click', (e) => {
+  // Helper to bind touch + click events seamlessly without double triggers
+  const bindDrawerEvent = (selector: string, handler: (e: Event) => void) => {
+    const el = topbar.querySelector(selector) as HTMLElement;
+    if (!el) return;
+    let touchTriggered = false;
+    el.addEventListener('touchstart', (e) => {
+      touchTriggered = true;
+      handler(e);
+    }, { passive: true });
+    el.addEventListener('click', (e) => {
+      if (touchTriggered) {
+        touchTriggered = false;
+        return;
+      }
+      handler(e);
+    });
+  };
+
+  bindDrawerEvent('#mobile-menu-toggle', (e) => {
     e.stopPropagation();
     openDrawer();
   });
-  drawerOverlay?.addEventListener('click', closeDrawer);
-  drawerCloseBtn?.addEventListener('click', closeDrawer);
+  bindDrawerEvent('#drawer-overlay', () => closeDrawer());
+  bindDrawerEvent('#close-drawer-btn', () => closeDrawer());
 
   // Project selector toggle inside drawer
-  const drawerProjBtn = topbar.querySelector('#drawer-project-btn') as HTMLElement;
-  const drawerProjList = topbar.querySelector('#drawer-project-list') as HTMLElement;
-  drawerProjBtn?.addEventListener('click', (e) => {
+  bindDrawerEvent('#drawer-project-btn', (e) => {
     e.stopPropagation();
     const isOpen = drawerProjList.style.display === 'flex';
     drawerProjList.style.display = isOpen ? 'none' : 'flex';
@@ -286,7 +300,8 @@ export function renderTopbar(): HTMLElement {
 
   // Project item switch inside drawer
   drawerProjList?.querySelectorAll('.dropdown-item[data-pid]').forEach(item => {
-    item.addEventListener('click', () => {
+    let touchTriggered = false;
+    const selectHandler = () => {
       const pid = (item as HTMLElement).dataset.pid!;
       const state = stateStore.get();
       stateStore.set({ ...state, activeProjectId: pid, activeSprintId: null });
@@ -294,51 +309,88 @@ export function renderTopbar(): HTMLElement {
       closeDrawer();
       const current = window.location.hash.replace('#', '') || 'dashboard';
       navigate(current);
+    };
+    item.addEventListener('touchstart', () => {
+      touchTriggered = true;
+      selectHandler();
+    }, { passive: true });
+    item.addEventListener('click', () => {
+      if (touchTriggered) {
+        touchTriggered = false;
+        return;
+      }
+      selectHandler();
     });
   });
 
   // Create project from drawer
-  drawerProjList?.querySelector('.add-proj-action')?.addEventListener('click', () => {
-    closeDrawer();
-    openNewProjectModal(() => {
-      const current = window.location.hash.replace('#', '') || 'dashboard';
-      navigate(current);
+  const addProjEl = drawerProjList?.querySelector('.add-proj-action') as HTMLElement;
+  if (addProjEl) {
+    let touchTriggered = false;
+    const addProjHandler = () => {
+      closeDrawer();
+      openNewProjectModal(() => {
+        const current = window.location.hash.replace('#', '') || 'dashboard';
+        navigate(current);
+      });
+    };
+    addProjEl.addEventListener('touchstart', () => {
+      touchTriggered = true;
+      addProjHandler();
+    }, { passive: true });
+    addProjEl.addEventListener('click', () => {
+      if (touchTriggered) {
+        touchTriggered = false;
+        return;
+      }
+      addProjHandler();
     });
-  });
+  }
 
   // Navigation Links inside drawer
   drawer?.querySelectorAll('.drawer-nav-links .nav-link-item').forEach(el => {
-    el.addEventListener('click', (e) => {
+    let touchTriggered = false;
+    const navHandler = (e: Event) => {
       e.preventDefault();
       const page = (el as HTMLElement).dataset.page!;
       closeDrawer();
       navigate(page);
+    };
+    el.addEventListener('touchstart', (e) => {
+      touchTriggered = true;
+      navHandler(e);
+    }, { passive: false });
+    el.addEventListener('click', (e) => {
+      if (touchTriggered) {
+        touchTriggered = false;
+        return;
+      }
+      navHandler(e);
     });
   });
 
   // DBSync export in drawer
-  drawer?.querySelector('#drawer-db-backup-btn')?.addEventListener('click', () => {
+  bindDrawerEvent('#drawer-db-backup-btn', () => {
     closeDrawer();
     databaseManager.exportBackup();
     showToast('Respaldo descargado con éxito', 'success');
   });
 
   // DBSync import in drawer
-  drawer?.querySelector('#drawer-db-import-btn-trigger')?.addEventListener('click', () => {
+  bindDrawerEvent('#drawer-db-import-btn-trigger', () => {
     closeDrawer();
-    // Desktop fileInput from global scope (in topbar.ts)
     const fileInput = topbar.querySelector('#db-file-input') as HTMLInputElement;
     fileInput?.click();
   });
 
   // Connect Supabase in drawer
-  drawer?.querySelector('#drawer-db-supabase-btn')?.addEventListener('click', () => {
+  bindDrawerEvent('#drawer-db-supabase-btn', () => {
     closeDrawer();
     openSupabaseModal();
   });
 
   // Reset database seed in drawer
-  drawer?.querySelector('#drawer-db-reset-btn')?.addEventListener('click', async () => {
+  bindDrawerEvent('#drawer-db-reset-btn', async () => {
     closeDrawer();
     if (confirm('⚠️ ¿Estás seguro de restablecer la base de datos? Se borrarán todos los cambios locales y remotos en Supabase, re-sembrando los datos por defecto.')) {
       await resetDatabaseToSeed(seedData);
@@ -348,13 +400,13 @@ export function renderTopbar(): HTMLElement {
   });
 
   // Team Page inside drawer
-  drawer?.querySelector('#drawer-prof-team-btn')?.addEventListener('click', () => {
+  bindDrawerEvent('#drawer-prof-team-btn', () => {
     closeDrawer();
     navigate('team');
   });
 
   // Logout inside drawer
-  drawer?.querySelector('#drawer-prof-logout-btn')?.addEventListener('click', () => {
+  bindDrawerEvent('#drawer-prof-logout-btn', () => {
     closeDrawer();
     navigate('landing');
     showToast('Sesión cerrada correctamente', 'success');
