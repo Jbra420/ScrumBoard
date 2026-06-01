@@ -805,12 +805,22 @@ function openSupabaseModal() {
     if (connected) {
       supabaseConfig.set(url, key, true);
       showToast('¡Conexión exitosa! Sincronización habilitada ✅', 'success');
+      
+      // Auto-upload local data to the newly connected database immediately!
+      showToast('Subiendo base de datos local a la nube de Supabase...', 'info');
+      const uploadRes = await uploadLocalToSupabase();
+      if (uploadRes.success) {
+        showToast('¡Datos locales migrados con éxito a la nube! 🚀', 'success');
+      } else {
+        showToast(`Conectado, pero no se pudieron subir los datos locales automáticamente: ${uploadRes.error}. Recuerda configurar RLS en Supabase e intenta sincronizar manualmente.`, 'info');
+      }
+      
       overlay.remove();
       
       // Automatic reload to pull data
       setTimeout(() => {
         window.location.reload();
-      }, 1000);
+      }, 1500);
     } else {
       showToast('No se pudo establecer conexión. Verifica tus credenciales.', 'error');
       connectBtn.disabled = false;

@@ -33,7 +33,16 @@ let _state: AppState = { activeProjectId: null, activeSprintId: null, currentPag
  */
 export async function initDatabase(): Promise<void> {
   try {
-    // 1. Try to sync and load from Supabase Cloud if enabled
+    // 1. Load local data from IndexedDB first as initial cache and protection fallback
+    const localProjects = await dbService.getAll<Project>('projects');
+    const localMembers = await dbService.getAll<TeamMember>('members');
+    const localSprints = await dbService.getAll<Sprint>('sprints');
+    const localEpics = await dbService.getAll<Epic>('epics');
+    const localStories = await dbService.getAll<UserStory>('stories');
+    const localTasks = await dbService.getAll<Task>('tasks');
+    const localMeetings = await dbService.getAll<Meeting>('meetings');
+
+    // 2. Try to sync and load from Supabase Cloud if enabled
     const sb = getSupabase();
     if (sb) {
       try {
@@ -49,45 +58,87 @@ export async function initDatabase(): Promise<void> {
         ]);
 
         if (!pRes.error && !mRes.error && !sRes.error && !eRes.error && !stRes.error && !tRes.error && !mtRes.error) {
-          _projects = pRes.data || [];
-          _members = mRes.data || [];
-          _sprints = sRes.data || [];
-          _epics = eRes.data || [];
-          _stories = stRes.data || [];
-          _tasks = tRes.data || [];
-          
-          // Deserialize JSON strings or objects back into Meeting models
-          _meetings = (mtRes.data || []).map(m => ({
-            id: m.id,
-            projectId: m.projectId,
-            sprintId: m.sprintId,
-            type: m.type,
-            date: m.date,
-            duration: m.duration,
-            attendees: m.attendees,
-            notes: m.notes,
-            dailyEntries: typeof m.dailyEntries === 'string' ? JSON.parse(m.dailyEntries) : m.dailyEntries || undefined,
-            retroNotes: typeof m.retroNotes === 'string' ? JSON.parse(m.retroNotes) : m.retroNotes || undefined,
-            reviewItems: m.reviewItems || undefined
-          }));
+          const remoteProjects = pRes.data || [];
 
-          // Mirror into Local IndexedDB as offline-first backup cache
-          await dbService.saveAll('projects', _projects);
-          await dbService.saveAll('members', _members);
-          await dbService.saveAll('sprints', _sprints);
-          await dbService.saveAll('epics', _epics);
-          await dbService.saveAll('stories', _stories);
-          await dbService.saveAll('tasks', _tasks);
-          await dbService.saveAll('meetings', _meetings);
-          
-          // Mirror to LocalStorage
-          localStorage.setItem(KEYS.projects, JSON.stringify(_projects));
-          localStorage.setItem(KEYS.members, JSON.stringify(_members));
-          localStorage.setItem(KEYS.sprints, JSON.stringify(_sprints));
-          localStorage.setItem(KEYS.epics, JSON.stringify(_epics));
-          localStorage.setItem(KEYS.stories, JSON.stringify(_stories));
-          localStorage.setItem(KEYS.tasks, JSON.stringify(_tasks));
-          localStorage.setItem(KEYS.meetings, JSON.stringify(_meetings));
+          // Double check: if remote database is empty but local has data, auto-upload to cloud!
+          if (remoteProjects.length === 0 && localProjects.length > 0) {
+            console.log('ScrumBoard Pro — Cloud database is empty but local data exists. Performing auto-migration to Supabase...');
+            
+            if (localProjects.length > 0) await sb.from('projects').upsert(localProjects);
+            if (localMembers.length > 0) await sb.from('members').upsert(localMembers);
+            if (localSprints.length > 0) await sb.from('sprints').upsert(localSprints);
+            if (localEpics.length > 0) await sb.from('epics').upsert(localEpics);
+            if (localStories.length > 0) await sb.from('stories').upsert(localStories);
+            if (localTasks.length > 0) await sb.from('tasks').upsert(localTasks);
+            
+            if (localMeetings.length > 0) {
+              const formattedMeetings = localMeetings.map(m => ({
+                id: m.id,
+                projectId: m.projectId,
+                sprintId: m.sprintId || null,
+                type: m.type,
+                date: m.date,
+                duration: m.duration,
+                attendees: m.attendees,
+                notes: m.notes,
+                dailyEntries: m.dailyEntries ? JSON.stringify(m.dailyEntries) : null,
+                retroNotes: m.retroNotes ? JSON.stringify(m.retroNotes) : null,
+                reviewItems: m.reviewItems || []
+              }));
+              await sb.from('meetings').upsert(formattedMeetings);
+            }
+
+            _projects = localProjects;
+            _members = localMembers;
+            _sprints = localSprints;
+            _epics = localEpics;
+            _stories = localStories;
+            _tasks = localTasks;
+            _meetings = localMeetings;
+            
+            console.log('ScrumBoard Pro — Auto-migration to Supabase completed successfully.');
+          } else {
+            // Standard sync down (remote has data or both are empty)
+            _projects = remoteProjects;
+            _members = mRes.data || [];
+            _sprints = sRes.data || [];
+            _epics = eRes.data || [];
+            _stories = stRes.data || [];
+            _tasks = tRes.data || [];
+            
+            // Deserialize JSON strings or objects back into Meeting models
+            _meetings = (mtRes.data || []).map(m => ({
+              id: m.id,
+              projectId: m.projectId,
+              sprintId: m.sprintId,
+              type: m.type,
+              date: m.date,
+              duration: m.duration,
+              attendees: m.attendees,
+              notes: m.notes,
+              dailyEntries: typeof m.dailyEntries === 'string' ? JSON.parse(m.dailyEntries) : m.dailyEntries || undefined,
+              retroNotes: typeof m.retroNotes === 'string' ? JSON.parse(m.retroNotes) : m.retroNotes || undefined,
+              reviewItems: m.reviewItems || undefined
+            }));
+
+            // Mirror into Local IndexedDB as offline-first backup cache
+            await dbService.saveAll('projects', _projects);
+            await dbService.saveAll('members', _members);
+            await dbService.saveAll('sprints', _sprints);
+            await dbService.saveAll('epics', _epics);
+            await dbService.saveAll('stories', _stories);
+            await dbService.saveAll('tasks', _tasks);
+            await dbService.saveAll('meetings', _meetings);
+            
+            // Mirror to LocalStorage
+            localStorage.setItem(KEYS.projects, JSON.stringify(_projects));
+            localStorage.setItem(KEYS.members, JSON.stringify(_members));
+            localStorage.setItem(KEYS.sprints, JSON.stringify(_sprints));
+            localStorage.setItem(KEYS.epics, JSON.stringify(_epics));
+            localStorage.setItem(KEYS.stories, JSON.stringify(_stories));
+            localStorage.setItem(KEYS.tasks, JSON.stringify(_tasks));
+            localStorage.setItem(KEYS.meetings, JSON.stringify(_meetings));
+          }
 
           // Load active state from IndexedDB
           const stateArr = await dbService.getAll<any>('state');
@@ -115,14 +166,14 @@ export async function initDatabase(): Promise<void> {
       }
     }
 
-    // 2. Load from IndexedDB
-    _projects = await dbService.getAll<Project>('projects');
-    _members = await dbService.getAll<TeamMember>('members');
-    _sprints = await dbService.getAll<Sprint>('sprints');
-    _epics = await dbService.getAll<Epic>('epics');
-    _stories = await dbService.getAll<UserStory>('stories');
-    _tasks = await dbService.getAll<Task>('tasks');
-    _meetings = await dbService.getAll<Meeting>('meetings');
+    // 3. Fallback: Assign loaded local data to in-memory cache
+    _projects = localProjects;
+    _members = localMembers;
+    _sprints = localSprints;
+    _epics = localEpics;
+    _stories = localStories;
+    _tasks = localTasks;
+    _meetings = localMeetings;
     
     const stateArr = await dbService.getAll<any>('state');
     const dbState = stateArr.find(s => s.id === 'app_state');
@@ -137,7 +188,7 @@ export async function initDatabase(): Promise<void> {
       _state = localState ? JSON.parse(localState) : { activeProjectId: null, activeSprintId: null, currentPage: 'landing' };
     }
 
-    // 3. Recovery fallback to LocalStorage
+    // 4. Recovery fallback to LocalStorage if IndexedDB was completely empty
     if (_projects.length === 0) {
       const getLocal = <T>(key: string): T[] => {
         const raw = localStorage.getItem(key);
