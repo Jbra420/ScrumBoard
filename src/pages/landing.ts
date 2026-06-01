@@ -1,6 +1,7 @@
 import { projectStore, storyStore, sprintStore, memberStore, stateStore } from '../store/storage';
 import { navigate } from '../router/index';
 import { renderTopbar } from '../components/topbar';
+import { showToast } from '../components/modal';
 
 export function renderLanding(): HTMLElement {
   const wrap = document.createElement('div');
@@ -248,7 +249,10 @@ export function renderLanding(): HTMLElement {
             </h2>
             <p style="font-size:12px;color:var(--text-muted);margin-top:2px">${projects.length} proyecto${projects.length !== 1 ? 's' : ''} disponible${projects.length !== 1 ? 's' : ''}</p>
           </div>
-          ${isGuest ? '' : '<button class="btn btn-primary" id="landing-new-proj">+ Nuevo Proyecto</button>'}
+          ${isGuest 
+            ? '<button class="btn btn-secondary logout-btn" id="landing-logout-btn" style="border-radius:20px; font-size:11px; font-weight:700; padding: 6px 16px; border-color:rgba(239,68,68,0.4); color:var(--red); background:rgba(239,68,68,0.05); gap:6px; display:inline-flex; align-items:center;">🚪 Cerrar Sesión</button>' 
+            : '<button class="btn btn-primary" id="landing-new-proj">+ Nuevo Proyecto</button>'
+          }
         </div>
 
         ${projects.length > 0 ? `
@@ -369,6 +373,23 @@ export function renderLanding(): HTMLElement {
   if (!isGuest) {
     wrap.querySelector('#landing-new-proj')?.addEventListener('click', () => navigate('projects'));
     wrap.querySelector('#landing-new-proj2')?.addEventListener('click', () => navigate('projects'));
+  } else {
+    wrap.querySelector('#landing-logout-btn')?.addEventListener('click', () => {
+      const stateObj = stateStore.get();
+      stateStore.set({ ...stateObj, userRole: null, activeProjectId: null, activeSprintId: null });
+      navigate('landing');
+      showToast('Sesión cerrada correctamente', 'success');
+      
+      // Update topbar visuals dynamically to hide it
+      const topbarEl = document.getElementById('topbar-new');
+      if (topbarEl) {
+        topbarEl.style.display = 'none';
+      }
+      
+      // Refresh landing page to show standard login portal
+      const page = renderLanding();
+      wrap.replaceWith(page);
+    });
   }
 
   return wrap;

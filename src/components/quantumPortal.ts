@@ -3,6 +3,8 @@
 // ============================================================
 
 import { navigate } from '../router/index';
+import { stateStore } from '../store/storage';
+import { showToast } from './modal';
 
 const ICONS: Record<string, string> = {
   dashboard: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"></rect><rect x="14" y="3" width="7" height="5"></rect><rect x="14" y="12" width="7" height="9"></rect><rect x="3" y="16" width="7" height="5"></rect></svg>`,
@@ -48,6 +50,8 @@ export function initQuantumPortal() {
   document.body.appendChild(overlay);
 
   const updatePortalContent = () => {
+    const state = stateStore.get();
+    const isGuest = state.userRole === 'invitado';
     const currentPage = window.location.hash.replace('#', '') || 'landing';
     overlay.innerHTML = `
       <div class="quantum-portal-content">
@@ -67,6 +71,16 @@ export function initQuantumPortal() {
               <span>${label}</span>
             </div>
           `).join('')}
+        </div>
+
+        <div class="portal-actions" style="margin-top: 32px; display: flex; flex-direction: column; align-items: center; gap: 12px; width: 100%;">
+          <div style="font-size: 11px; color: var(--text-muted); display: flex; align-items: center; gap: 6px;">
+            <span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: ${isGuest ? 'var(--cyan)' : 'var(--accent)'}; box-shadow: 0 0 8px ${isGuest ? 'var(--cyan)' : 'var(--accent)'};"></span>
+            Conectado como <strong style="color: var(--text-secondary);">${isGuest ? 'Invitado (Lector)' : 'Scrum Master (DJBRA)'}</strong>
+          </div>
+          <button class="btn btn-danger logout-btn" id="portal-logout-btn" style="border-radius: 20px; padding: 10px 24px; font-size: 12px; font-weight: 800; gap: 8px; width: 100%; max-width: 240px; justify-content: center; border: 1px solid rgba(239, 68, 68, 0.4); background: rgba(239, 68, 68, 0.05); color: var(--red); box-shadow: 0 4px 15px rgba(239, 68, 68, 0.08); transition: all 0.3s; display: flex; align-items: center;">
+            🚪 Cerrar Sesión (Cambiar Rol)
+          </button>
         </div>
       </div>
     `;
@@ -108,6 +122,31 @@ export function initQuantumPortal() {
           return;
         }
         closePortal();
+      });
+    }
+
+    // Bind logout button in portal
+    const logoutBtn = overlay.querySelector('#portal-logout-btn');
+    if (logoutBtn) {
+      let touchTriggered = false;
+      const logoutHandler = (e: Event) => {
+        e.preventDefault();
+        closePortal();
+        const stateObj = stateStore.get();
+        stateStore.set({ ...stateObj, userRole: null, activeProjectId: null, activeSprintId: null });
+        navigate('landing');
+        showToast('Sesión cerrada correctamente', 'success');
+      };
+      logoutBtn.addEventListener('touchstart', (e) => {
+        touchTriggered = true;
+        logoutHandler(e);
+      }, { passive: false });
+      logoutBtn.addEventListener('click', (e) => {
+        if (touchTriggered) {
+          touchTriggered = false;
+          return;
+        }
+        logoutHandler(e);
       });
     }
   };
