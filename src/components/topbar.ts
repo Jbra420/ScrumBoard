@@ -478,7 +478,7 @@ export function renderTopbar(): HTMLElement {
   // DBSync import in drawer
   bindDrawerEvent('#drawer-db-import-btn-trigger', () => {
     closeDrawer();
-    const fileInput = topbar.querySelector('#db-file-input') as HTMLInputElement;
+    const fileInput = topbar.querySelector('#db-file-input') as HTMLInputElement | null;
     fileInput?.click();
   });
 
@@ -593,12 +593,12 @@ export function renderTopbar(): HTMLElement {
   });
 
   // DB Import Action
-  const fileInput = dbMenu.querySelector('#db-file-input') as HTMLInputElement;
+  const fileInput = dbMenu.querySelector('#db-file-input') as HTMLInputElement | null;
   dbMenu.querySelector('#db-import-btn-trigger')?.addEventListener('click', () => {
-    fileInput.click();
+    fileInput?.click();
   });
 
-  fileInput.addEventListener('change', async () => {
+  fileInput?.addEventListener('change', async () => {
     const file = fileInput.files?.[0];
     if (file) {
       dbMenu.classList.remove('open');
