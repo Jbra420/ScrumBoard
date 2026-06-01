@@ -16,10 +16,10 @@ export function renderLanding(): HTMLElement {
         <div style="position:absolute;top:-10%;left:30%;width:600px;height:600px;background:radial-gradient(circle,rgba(168,85,247,0.12) 0%,rgba(99,102,241,0.06) 40%,transparent 65%);pointer-events:none;animation:cosmicDrift 20s ease-in-out infinite alternate;z-index:0"></div>
         <div style="position:absolute;bottom:-10%;right:10%;width:500px;height:500px;background:radial-gradient(circle,rgba(56,189,248,0.1) 0%,transparent 60%);pointer-events:none;animation:cosmicDrift 25s ease-in-out infinite alternate-reverse;z-index:0"></div>
         
-        <div class="card login-card-portal" style="max-width:960px;width:100%;display:grid;grid-template-columns:1.1fr 1fr;gap:40px;padding:40px;position:relative;z-index:1;background:rgba(20,10,35,0.7);backdrop-filter:blur(20px);border:1px solid rgba(168,85,247,0.2);box-shadow:0 0 50px rgba(168,85,247,0.15);border-radius:16px">
+        <div class="card login-card-portal">
           
           <!-- LEFT SIDE: Branding & Alex Grey Sacred Agile Geometry -->
-          <div style="display:flex;flex-direction:column;justify-content:center;border-right:1px solid rgba(255,255,255,0.08);padding-right:40px" class="login-left-panel">
+          <div class="login-left-panel">
             <div style="font-size:56px;margin-bottom:18px;filter:drop-shadow(0 0 20px rgba(168,85,247,0.4))">⚡</div>
             <h1 style="font-size:38px;font-weight:900;letter-spacing:-1px;margin-bottom:12px;background:linear-gradient(135deg,#C084FC,#38BDF8,#FB923C,#C084FC);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;background-size:300% 300%;animation:sacredGlow 6s ease-in-out infinite">
               ScrumBoard Pro
@@ -377,6 +377,15 @@ export function renderLanding(): HTMLElement {
 function selectProject(pid: string) {
   const state = stateStore.get();
   stateStore.set({ ...state, activeProjectId: pid, activeSprintId: null });
+
+  // Re-render the topbar to show the selected project
+  const topbarEl = document.getElementById('topbar-new');
+  if (topbarEl) {
+    const newTopbar = renderTopbar();
+    topbarEl.replaceWith(newTopbar);
+    newTopbar.style.display = 'flex';
+  }
+
   navigate('dashboard');
 
   // Update sidebar project name
