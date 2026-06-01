@@ -157,22 +157,54 @@ export function renderTopbar(): HTMLElement {
       
       <div class="topbar-divider"></div>
       
-      <!-- User Profile Dropdown -->
+      <!-- Holographic Profile Portal -->
       <div class="profile-selector-wrap" style="position:relative;">
         <div class="topbar-profile" id="profile-dropdown-btn" title="Menú de Perfil" style="cursor:pointer;">
-          <div class="avatar" style="background:var(--accent)">J</div>
+          <div class="hologram-avatar-container">
+            <svg class="portal-ring" viewBox="0 0 100 100">
+              <circle cx="50" cy="50" r="45" />
+            </svg>
+            <div class="avatar hologram-avatar" style="background:var(--accent)">J</div>
+            <span class="online-pulse"></span>
+          </div>
           <div class="profile-info">
             <div class="profile-name">Juan (SM)</div>
             <div class="profile-role">Scrum Master</div>
           </div>
+          <span class="profile-chevron">▼</span>
         </div>
-        <div class="profile-dropdown-menu" id="profile-dropdown-menu" style="position:absolute; top:calc(100% + 8px); right:0; background:rgba(15,10,25,0.92); backdrop-filter:blur(20px); border:1px solid var(--border); border-radius:var(--radius-md); padding:8px 0; width:180px; display:none; flex-direction:column; box-shadow:0 12px 30px rgba(0,0,0,0.5); z-index:1000;">
-          <div class="dropdown-item" id="prof-team-btn" style="color:var(--text-primary); padding:10px 16px; font-size:12px; cursor:pointer; font-weight:500; display:flex; align-items:center; gap:8px;">
-            👥 Ver Equipo
+        <div class="profile-dropdown-menu" id="profile-dropdown-menu" style="position:absolute; top:calc(100% + 8px); right:0; display:none; flex-direction:column; z-index:1000;">
+          <div class="dropdown-header">Mi Cuenta</div>
+          
+          <div class="dropdown-item premium-menu-item" id="prof-team-btn">
+            <div class="menu-item-icon team-icon-bg">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
+                <circle cx="9" cy="7" r="4" />
+                <path d="M23 21v-2a4 4 0 00-3-3.87" />
+                <path d="M16 3.13a4 4 0 010 7.75" />
+              </svg>
+            </div>
+            <div class="menu-item-text">
+              <span class="menu-item-title">Ver Equipo</span>
+              <span class="menu-item-desc">Miembros y roles</span>
+            </div>
           </div>
-          <div class="dropdown-divider" style="height:1px; background:var(--border); margin:6px 0;"></div>
-          <div class="dropdown-item" id="prof-logout-btn" style="color:var(--red); padding:10px 16px; font-size:12px; cursor:pointer; font-weight:600; display:flex; align-items:center; gap:8px;">
-            🚪 Cerrar Sesión (Landing)
+          
+          <div class="dropdown-divider"></div>
+          
+          <div class="dropdown-item premium-menu-item logout-item" id="prof-logout-btn">
+            <div class="menu-item-icon logout-icon-bg">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
+                <polyline points="16 17 21 12 16 7" />
+                <line x1="21" y1="12" x2="9" y2="12" />
+              </svg>
+            </div>
+            <div class="menu-item-text">
+              <span class="menu-item-title">Cerrar Sesión</span>
+              <span class="menu-item-desc">Salir del espacio</span>
+            </div>
           </div>
         </div>
       </div>
@@ -257,21 +289,38 @@ export function renderTopbar(): HTMLElement {
           </div>
  
           <!-- Profile and Logout Section -->
-          <div class="drawer-section" style="margin-top: 16px; padding-top:20px; border-top:1px solid var(--border);">
-            <div class="topbar-profile" style="cursor:default; pointer-events:none; display:flex; align-items:center; gap:10px;">
-              <div class="avatar" style="background:var(--accent)">J</div>
+          <div class="drawer-section mobile-drawer-profile-section">
+            <div class="drawer-profile-card">
+              <div class="hologram-avatar-container">
+                <svg class="portal-ring" viewBox="0 0 100 100">
+                  <circle cx="50" cy="50" r="45" />
+                </svg>
+                <div class="avatar hologram-avatar" style="background:var(--accent)">J</div>
+                <span class="online-pulse"></span>
+              </div>
               <div class="profile-info">
-                <div class="profile-name" style="font-size:12px; font-weight:700; color:var(--text-primary);">Juan (SM)</div>
-                <div class="profile-role" style="font-size:9.5px; color:var(--text-muted);">Scrum Master</div>
+                <span class="profile-name">Juan (SM)</span>
+                <span class="profile-role">Scrum Master</span>
               </div>
             </div>
-            <div style="display:flex; flex-direction:column; gap:6px; margin-top:16px;">
-              <div class="dropdown-item drawer-db-action" id="drawer-prof-team-btn">
-                👥 Ver Equipo
-              </div>
-              <div class="dropdown-item drawer-db-action" id="drawer-prof-logout-btn" style="color: var(--red); font-weight: 600;">
-                🚪 Cerrar Sesión (Landing)
-              </div>
+            <div class="drawer-profile-actions">
+              <button class="btn btn-secondary drawer-profile-btn" id="drawer-prof-team-btn">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
+                  <circle cx="9" cy="7" r="4" />
+                  <path d="M23 21v-2a4 4 0 00-3-3.87" />
+                  <path d="M16 3.13a4 4 0 010 7.75" />
+                </svg>
+                <span>Ver Equipo</span>
+              </button>
+              <button class="btn btn-danger drawer-profile-btn logout-btn" id="drawer-prof-logout-btn">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
+                  <polyline points="16 17 21 12 16 7" />
+                  <line x1="21" y1="12" x2="9" y2="12" />
+                </svg>
+                <span>Cerrar Sesión</span>
+              </button>
             </div>
           </div>
         </div>

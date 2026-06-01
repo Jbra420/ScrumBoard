@@ -588,12 +588,32 @@ canvas.burndown-chart{width:100%!important;max-height:300px}
   text-decoration: none;
   border: 1px solid transparent;
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.nav-link-item::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.08), rgba(56, 189, 248, 0.04));
+  border-radius: 20px;
+  opacity: 0;
+  transform: scale(0.92);
+  transition: all 0.25s cubic-bezier(0.165, 0.84, 0.44, 1);
+  z-index: -1;
+}
+
+.nav-link-item:hover::before {
+  opacity: 1;
+  transform: scale(1);
 }
 
 .nav-link-item:hover {
   color: var(--text-primary);
-  background: rgba(168, 85, 247, 0.06);
-  border-color: rgba(168, 85, 247, 0.08);
+  border-color: rgba(168, 85, 247, 0.15);
+  box-shadow: 0 4px 15px rgba(168, 85, 247, 0.05);
 }
 
 .nav-link-item.active {
@@ -674,15 +694,73 @@ canvas.burndown-chart{width:100%!important;max-height:300px}
 .topbar-profile {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   cursor: pointer;
-  padding: 4px;
-  border-radius: 8px;
-  transition: background 0.2s;
+  padding: 6px 14px;
+  border-radius: 20px;
+  background: rgba(168, 85, 247, 0.03);
+  border: 1px solid rgba(168, 85, 247, 0.15);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .topbar-profile:hover {
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(168, 85, 247, 0.08);
+  border-color: rgba(168, 85, 247, 0.35);
+  box-shadow: 0 0 15px rgba(168, 85, 247, 0.15);
+}
+
+.hologram-avatar-container {
+  position: relative;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.portal-ring {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  fill: none;
+  stroke: var(--accent-light);
+  stroke-width: 3;
+  stroke-dasharray: 283;
+  stroke-dashoffset: 283;
+  transform-origin: center;
+  animation: portalRotate 6s linear infinite, portalDash 3s ease-in-out infinite alternate;
+}
+
+.hologram-avatar {
+  width: 28px !important;
+  height: 28px !important;
+  border-radius: 50% !important;
+  background: linear-gradient(135deg, var(--accent), var(--indigo)) !important;
+  font-size: 11.5px !important;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 12px rgba(168, 85, 247, 0.4);
+  z-index: 2;
+  margin-left: 0 !important;
+}
+
+.online-pulse {
+  position: absolute;
+  bottom: 1px;
+  right: 1px;
+  width: 8px;
+  height: 8px;
+  background: var(--green);
+  border: 1.5px solid #07060d;
+  border-radius: 50%;
+  box-shadow: 0 0 8px var(--green);
+  z-index: 3;
+  animation: pulseGlow 1.8s infinite;
 }
 
 .profile-info {
@@ -701,6 +779,205 @@ canvas.burndown-chart{width:100%!important;max-height:300px}
   font-size: 9.5px;
   color: var(--text-muted);
   font-weight: 500;
+}
+
+.profile-chevron {
+  font-size: 8px;
+  color: var(--text-muted);
+  margin-left: 4px;
+  transition: transform 0.2s;
+}
+
+.topbar-profile:hover .profile-chevron {
+  color: var(--accent-light);
+  transform: translateY(1px);
+}
+
+/* Premium Profile Dropdown Glassmorphism */
+.profile-dropdown-menu {
+  background: rgba(15, 12, 28, 0.72) !important;
+  backdrop-filter: blur(32px) saturate(1.6) !important;
+  border: 1px solid rgba(168, 85, 247, 0.25) !important;
+  border-radius: 16px !important;
+  padding: 10px 0 !important;
+  width: 220px !important;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.7), 0 0 20px rgba(168, 85, 247, 0.15) !important;
+  transform-origin: top right;
+  animation: dropdown3d 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.premium-menu-item {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 12px !important;
+  padding: 10px 16px !important;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  border-left: 3px solid transparent;
+}
+
+.premium-menu-item:hover {
+  background: rgba(168, 85, 247, 0.08) !important;
+  border-left-color: var(--accent) !important;
+  padding-left: 20px !important;
+}
+
+.premium-menu-item.logout-item:hover {
+  background: rgba(248, 113, 113, 0.08) !important;
+  border-left-color: var(--red) !important;
+}
+
+.menu-item-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.25s;
+  flex-shrink: 0;
+}
+
+.team-icon-bg {
+  background: rgba(168, 85, 247, 0.1);
+  border: 1px solid rgba(168, 85, 247, 0.2);
+  color: var(--accent-light);
+}
+
+.premium-menu-item:hover .team-icon-bg {
+  background: var(--accent);
+  color: white;
+  box-shadow: 0 0 10px var(--accent-glow);
+  transform: scale(1.05);
+}
+
+.logout-icon-bg {
+  background: rgba(248, 113, 113, 0.1);
+  border: 1px solid rgba(248, 113, 113, 0.2);
+  color: var(--red);
+}
+
+.premium-menu-item.logout-item:hover .logout-icon-bg {
+  background: var(--red);
+  color: white;
+  box-shadow: 0 0 10px rgba(248, 113, 113, 0.4);
+  transform: scale(1.05);
+}
+
+.menu-item-text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.menu-item-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.menu-item-desc {
+  font-size: 9.5px;
+  color: var(--text-muted);
+}
+
+/* Mobile Drawer Profile Widget */
+.mobile-drawer-profile-section {
+  margin-top: auto !important;
+  padding-top: 24px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.drawer-profile-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: rgba(168, 85, 247, 0.04);
+  border: 1px solid var(--border);
+  padding: 12px 16px;
+  border-radius: 14px;
+  box-shadow: inset 0 0 15px rgba(168, 85, 247, 0.02);
+}
+
+.drawer-profile-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  width: 100%;
+}
+
+.drawer-profile-btn {
+  justify-content: center !important;
+  font-size: 11.5px !important;
+  padding: 10px 12px !important;
+  border-radius: 12px !important;
+  gap: 6px !important;
+  font-weight: 700 !important;
+  transition: all 0.25s !important;
+}
+
+.drawer-profile-btn.logout-btn {
+  background: rgba(248, 113, 113, 0.1) !important;
+  border-color: rgba(248, 113, 113, 0.25) !important;
+  color: var(--red) !important;
+}
+
+.drawer-profile-btn.logout-btn:hover {
+  background: rgba(248, 113, 113, 0.2) !important;
+  color: white !important;
+  box-shadow: 0 0 15px rgba(248, 113, 113, 0.2) !important;
+}
+
+/* Custom Holographic Animations & Transitions */
+@keyframes dropdown3d {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes portalRotate {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes portalDash {
+  0% {
+    stroke-dashoffset: 283;
+    stroke: var(--accent-light);
+  }
+  50% {
+    stroke-dashoffset: 140;
+    stroke: var(--cyan);
+  }
+  100% {
+    stroke-dashoffset: 0;
+    stroke: var(--accent-light);
+  }
+}
+
+@keyframes pulseGlow {
+  0% {
+    box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.6);
+  }
+  70% {
+    box-shadow: 0 0 0 6px rgba(52, 211, 153, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(52, 211, 153, 0);
+  }
 }
 
 /* Ocultar elementos heredados obsoletos */
