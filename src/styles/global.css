@@ -933,6 +933,72 @@ canvas.burndown-chart{width:100%!important;max-height:300px}
   border-color: rgba(168, 85, 247, 0.25) !important;
 }
 
+/* Drawer Navigation Links */
+.drawer-nav-links .nav-link-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 18px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-decoration: none;
+  border: 1px solid transparent;
+  transition: all 0.2s;
+}
+
+.drawer-nav-links .nav-link-item:hover {
+  color: var(--text-primary);
+  background: rgba(168, 85, 247, 0.06);
+  border-color: rgba(168, 85, 247, 0.08);
+}
+
+.drawer-nav-links .nav-link-item.active {
+  color: var(--accent-light);
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.14), rgba(99, 102, 241, 0.08));
+  border-color: rgba(168, 85, 247, 0.25);
+  box-shadow: 0 0 25px rgba(168, 85, 247, 0.08);
+}
+
+.drawer-nav-links .nav-link-item svg {
+  opacity: 0.6;
+  transition: opacity 0.2s;
+}
+
+.drawer-nav-links .nav-link-item.active svg {
+  opacity: 1;
+}
+
+/* Drawer Project Switcher */
+.drawer-project-btn {
+  width: 100%;
+  justify-content: space-between;
+  display: flex;
+  align-items: center;
+  padding: 10px 16px;
+  background: rgba(168, 85, 247, 0.05);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.drawer-project-btn:hover {
+  border-color: var(--accent);
+  background: rgba(168, 85, 247, 0.12);
+  box-shadow: 0 0 15px rgba(168, 85, 247, 0.15);
+}
+
+.drawer-project-list {
+  display: none;
+  flex-direction: column;
+  gap: 4px;
+  padding-left: 8px;
+  border-left: 1px solid var(--border);
+  margin-top: 8px;
+}
+
 /* ============================================================
    RESPONSIVE LAYOUT OVERRIDES (MEDIA QUERIES)
    ============================================================ */
@@ -962,6 +1028,24 @@ canvas.burndown-chart{width:100%!important;max-height:300px}
   
   .topbar-new {
     padding: 0 16px !important;
+  }
+}
+
+@media (max-width: 600px) {
+  .topbar-new .project-selector-wrap {
+    display: none !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .topbar-new {
+    padding: 0 12px !important;
+  }
+}
+
+@media (max-width: 400px) {
+  .topbar-logo {
+    font-size: 15px !important;
   }
 }
 

@@ -168,58 +168,58 @@ export function renderTopbar(): HTMLElement {
         
         <div class="drawer-body">
           <!-- Active Project Section -->
-          <div class="drawer-section" style="margin-bottom: 24px;">
-            <div class="drawer-section-title" style="font-size: 10px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 8px;">Proyecto Activo</div>
-            <div class="project-selector" id="drawer-project-btn" style="width:100%; justify-content:space-between; display: flex; align-items: center; padding: 10px 16px; background: rgba(168, 85, 247, 0.05); border: 1px solid var(--border); border-radius: 20px; cursor: pointer;">
-              <span class="proj-name" style="font-size: 12px; font-weight: 700; color: var(--text-secondary); max-width: 80%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${activeProject?.name || 'Selecciona Proyecto'}</span>
-              <span class="proj-arrow" style="font-size: 9px; color: var(--text-muted);">▼</span>
+          <div class="drawer-section">
+            <div class="drawer-section-title">Proyecto Activo</div>
+            <div class="drawer-project-btn" id="drawer-project-btn">
+              <span class="proj-name">${activeProject?.name || 'Selecciona Proyecto'}</span>
+              <span class="proj-arrow">▼</span>
             </div>
-            <div class="drawer-project-list" id="drawer-project-list" style="display:none; flex-direction:column; gap:4px; padding-left:8px; border-left:1px solid var(--border); margin-top:8px;">
+            <div class="drawer-project-list" id="drawer-project-list">
               ${allProjects.map(p => `
-                <div class="dropdown-item ${activeProject?.id === p.id ? 'active' : ''}" data-pid="${p.id}" style="padding: 10px 14px; border-radius:var(--radius-sm); font-size: 12px; cursor: pointer; transition: all 0.2s;">
+                <div class="dropdown-item ${activeProject?.id === p.id ? 'active' : ''}" data-pid="${p.id}">
                   <div style="font-weight: 600;">${p.name}</div>
                 </div>
               `).join('')}
-              <div class="dropdown-item add-proj-action" style="color: var(--accent-light); font-weight:600; padding: 10px 14px; font-size: 12px; cursor: pointer;">
+              <div class="dropdown-item add-proj-action" style="color: var(--accent-light); font-weight:600;">
                 + Crear Nuevo Proyecto
               </div>
             </div>
           </div>
-
+ 
           <!-- Navigation Links Section -->
-          <div class="drawer-section" style="margin-bottom: 24px;">
-            <div class="drawer-section-title" style="font-size: 10px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 8px;">Navegación</div>
+          <div class="drawer-section">
+            <div class="drawer-section-title">Navegación</div>
             <nav class="drawer-nav-links" style="display:flex; flex-direction:column; gap:8px;">
               ${navItems.map(({ page, label }) => `
-                <a class="nav-link-item ${currentPage === page ? 'active' : ''}" data-page="${page}" href="#${page}" style="display: flex; align-items: center; gap: 10px; padding: 12px 18px; border-radius: 20px; font-size: 13px; font-weight: 600; color: var(--text-muted); text-decoration: none; border: 1px solid transparent; transition: all 0.2s;">
+                <a class="nav-link-item ${currentPage === page ? 'active' : ''}" data-page="${page}" href="#${page}">
                   ${ICONS[page]} <span>${label}</span>
                 </a>
               `).join('')}
             </nav>
           </div>
-
+ 
           <!-- Cloud / DB Sync Section -->
-          <div class="drawer-section" style="margin-bottom: 24px;">
-            <div class="drawer-section-title" style="font-size: 10px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 8px;">Datos y Nube</div>
+          <div class="drawer-section">
+            <div class="drawer-section-title">Datos y Nube</div>
             <div class="db-status-bar" style="border:none; padding:0; margin-bottom:12px;">
               ${dbStatusHTML}
             </div>
             <div style="display:flex; flex-direction:column; gap:6px;">
-              <div class="dropdown-item drawer-db-action" id="drawer-db-backup-btn" style="border: 1px solid var(--border); border-radius:8px; padding:10px 14px; font-size: 12px; cursor: pointer; color: var(--text-secondary);">
+              <div class="dropdown-item drawer-db-action" id="drawer-db-backup-btn">
                 📤 Exportar Respaldos (.json)
               </div>
-              <div class="dropdown-item drawer-db-action" id="drawer-db-import-btn-trigger" style="border: 1px solid var(--border); border-radius:8px; padding:10px 14px; font-size: 12px; cursor: pointer; color: var(--text-secondary);">
+              <div class="dropdown-item drawer-db-action" id="drawer-db-import-btn-trigger">
                 📥 Importar Respaldos (.json)
               </div>
-              <div class="dropdown-item drawer-db-action" id="drawer-db-supabase-btn" style="border: 1px solid var(--border); border-radius:8px; padding:10px 14px; font-size: 12px; cursor: pointer; color: var(--accent-light); font-weight: 700;">
+              <div class="dropdown-item drawer-db-action" id="drawer-db-supabase-btn" style="color: var(--accent-light); font-weight: 700;">
                 ☁️ Conectar Supabase
               </div>
-              <div class="dropdown-item drawer-db-action" id="drawer-db-reset-btn" style="border: 1px solid var(--border); border-radius:8px; padding:10px 14px; font-size: 12px; cursor: pointer; color: var(--red); font-weight: 600;">
+              <div class="dropdown-item drawer-db-action" id="drawer-db-reset-btn" style="color: var(--red); font-weight: 600;">
                 ⚠️ Restablecer Semilla
               </div>
             </div>
           </div>
-
+ 
           <!-- Profile and Logout Section -->
           <div class="drawer-section" style="margin-top: 16px; padding-top:20px; border-top:1px solid var(--border);">
             <div class="topbar-profile" style="cursor:default; pointer-events:none; display:flex; align-items:center; gap:10px;">
@@ -230,10 +230,10 @@ export function renderTopbar(): HTMLElement {
               </div>
             </div>
             <div style="display:flex; flex-direction:column; gap:6px; margin-top:16px;">
-              <div class="dropdown-item drawer-db-action" id="drawer-prof-team-btn" style="border: 1px solid var(--border); border-radius:8px; padding:10px 14px; font-size: 12px; cursor: pointer; color: var(--text-secondary);">
+              <div class="dropdown-item drawer-db-action" id="drawer-prof-team-btn">
                 👥 Ver Equipo
               </div>
-              <div class="dropdown-item drawer-db-action" id="drawer-prof-logout-btn" style="border: 1px solid var(--border); border-radius:8px; padding:10px 14px; font-size: 12px; cursor: pointer; color: var(--red); font-weight: 600;">
+              <div class="dropdown-item drawer-db-action" id="drawer-prof-logout-btn" style="color: var(--red); font-weight: 600;">
                 🚪 Cerrar Sesión (Landing)
               </div>
             </div>
@@ -280,8 +280,8 @@ export function renderTopbar(): HTMLElement {
   const drawerProjList = topbar.querySelector('#drawer-project-list') as HTMLElement;
   drawerProjBtn?.addEventListener('click', (e) => {
     e.stopPropagation();
-    const isHidden = drawerProjList.style.display === 'none';
-    drawerProjList.style.display = isHidden ? 'flex' : 'none';
+    const isOpen = drawerProjList.style.display === 'flex';
+    drawerProjList.style.display = isOpen ? 'none' : 'flex';
   });
 
   // Project item switch inside drawer
