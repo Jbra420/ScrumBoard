@@ -7,6 +7,7 @@ import { initDatabase, isSeeded, projectStore } from './store/storage';
 import { seedData } from './data/seed';
 import { renderTopbar } from './components/topbar';
 import { initToast } from './components/modal';
+import { initQuantumPortal } from './components/quantumPortal';
 import { registerRoute, initRouter } from './router/index';
 import { renderDashboard } from './pages/dashboard';
 import { renderSprints } from './pages/sprints';
@@ -58,6 +59,7 @@ async function startApp() {
 
   // 4. Initialize global visual elements
   initToast();
+  initQuantumPortal();
 
   // 5. Build full-width Topbar App Shell
   const app = document.getElementById('app')!;
