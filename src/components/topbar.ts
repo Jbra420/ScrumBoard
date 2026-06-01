@@ -29,6 +29,12 @@ export function renderTopbar(): HTMLElement {
   const allProjects = projectStore.getAll();
   const state = stateStore.get();
   
+  const isGuest = state.userRole === 'invitado';
+  const profLetter = isGuest ? 'I' : 'J';
+  const profName = isGuest ? 'Invitado (Lector)' : 'DJBRA (SM)';
+  const profRoleText = isGuest ? 'Invitado Lector' : 'Scrum Master';
+  const avatarColor = isGuest ? 'var(--cyan)' : 'var(--accent)';
+  
   const navItems = [
     { page: 'dashboard', label: 'Dashboard' },
     { page: 'sprints', label: 'Sprints / Kanban' },
@@ -46,7 +52,7 @@ export function renderTopbar(): HTMLElement {
     ? `<span style="display:inline-block; width:6px; height:6px; background:#C084FC; border-radius:50%; margin-right:4px;"></span> <span style="font-size:10px; color: var(--accent-light); font-weight:700;">Nube Supabase Sincronizada</span>` 
     : `<span style="display:inline-block; width:6px; height:6px; background:#34D399; border-radius:50%; margin-right:4px;"></span> <span style="font-size:10px; color: var(--green); font-weight:700;">IndexedDB Local Activa</span>`;
 
-  const syncBtnHTML = sbEnabled 
+  const syncBtnHTML = isGuest ? '' : (sbEnabled 
     ? `
       <!-- Quick Cloud Sync Button -->
       <button class="btn btn-secondary btn-sm sync-cloud-btn enabled" id="topbar-sync-btn" title="Sincronizar Cambios con Supabase (Subir y Actualizar)" style="gap: 6px; padding: 6px 14px; border-radius: 20px; font-size: 11px; font-weight: 700; border-color: rgba(168, 85, 247, 0.3); background: rgba(168, 85, 247, 0.05); color: var(--accent-light);">
@@ -60,9 +66,9 @@ export function renderTopbar(): HTMLElement {
         <span class="sync-icon-wrapper" style="display: inline-flex; align-items: center; justify-content: center; color: var(--yellow);">${ICONS.cloudSync}</span>
         <span class="sync-label-text">Conectar Nube</span>
       </button>
-    `;
-
-  const drawerSyncBtnHTML = sbEnabled 
+    `);
+ 
+  const drawerSyncBtnHTML = isGuest ? '' : (sbEnabled 
     ? `
       <!-- Quick Drawer Sync Button -->
       <button class="btn btn-primary btn-sm drawer-sync-btn enabled" id="drawer-sync-btn" style="margin-bottom: 12px; justify-content: center; font-size:11px; padding: 8px 12px; gap: 8px; border-radius: 12px; width: 100%;">
@@ -76,7 +82,7 @@ export function renderTopbar(): HTMLElement {
         <span class="sync-icon-wrapper" style="display:inline-flex; align-items: center; justify-content: center; color: var(--yellow);">${ICONS.cloudSync}</span>
         <span>Conectar Nube</span>
       </button>
-    `;
+    `);
 
   topbar.innerHTML = `
     <!-- Glowing micro loading progress bar -->
@@ -102,10 +108,12 @@ export function renderTopbar(): HTMLElement {
               <div style="font-size: 10px; color: var(--text-muted);">${p.description.substring(0, 45)}...</div>
             </div>
           `).join('')}
-          <div class="dropdown-divider"></div>
-          <div class="dropdown-item add-proj-action" style="color: var(--accent-light); text-align: center; font-weight:600;">
-            + Crear Nuevo Proyecto
-          </div>
+          ${isGuest ? '' : `
+            <div class="dropdown-divider"></div>
+            <div class="dropdown-item add-proj-action" style="color: var(--accent-light); text-align: center; font-weight:600;">
+              + Crear Nuevo Proyecto
+            </div>
+          `}
         </div>
       </div>
     </div>
@@ -136,17 +144,19 @@ export function renderTopbar(): HTMLElement {
           <div class="dropdown-item" id="db-backup-btn">
             📤 Exportar Respaldos (.json)
           </div>
-          <div class="dropdown-item" id="db-import-btn-trigger">
-            📥 Importar Respaldos (.json)
-            <input type="file" id="db-file-input" accept=".json" style="display:none">
-          </div>
-          <div class="dropdown-item" id="db-supabase-btn" style="color: var(--accent-light); font-weight: 700;">
-            ☁️ Conectar Supabase
-          </div>
-          <div class="dropdown-divider"></div>
-          <div class="dropdown-item reset-db-action" id="db-reset-btn" style="color: var(--red); font-weight: 600;">
-            ⚠️ Restablecer Semilla
-          </div>
+          ${isGuest ? '' : `
+            <div class="dropdown-item" id="db-import-btn-trigger">
+              📥 Importar Respaldos (.json)
+              <input type="file" id="db-file-input" accept=".json" style="display:none">
+            </div>
+            <div class="dropdown-item" id="db-supabase-btn" style="color: var(--accent-light); font-weight: 700;">
+              ☁️ Conectar Supabase
+            </div>
+            <div class="dropdown-divider"></div>
+            <div class="dropdown-item reset-db-action" id="db-reset-btn" style="color: var(--red); font-weight: 600;">
+              ⚠️ Restablecer Semilla
+            </div>
+          `}
         </div>
       </div>
       
@@ -164,12 +174,12 @@ export function renderTopbar(): HTMLElement {
             <svg class="portal-ring" viewBox="0 0 100 100">
               <circle cx="50" cy="50" r="45" />
             </svg>
-            <div class="avatar hologram-avatar" style="background:var(--accent)">J</div>
+            <div class="avatar hologram-avatar" style="background:${avatarColor}">${profLetter}</div>
             <span class="online-pulse"></span>
           </div>
           <div class="profile-info">
-            <div class="profile-name">Juan (SM)</div>
-            <div class="profile-role">Scrum Master</div>
+            <div class="profile-name">${profName}</div>
+            <div class="profile-role">${profRoleText}</div>
           </div>
           <span class="profile-chevron">▼</span>
         </div>
@@ -247,9 +257,11 @@ export function renderTopbar(): HTMLElement {
                   <div style="font-weight: 600;">${p.name}</div>
                 </div>
               `).join('')}
-              <div class="dropdown-item add-proj-action" style="color: var(--accent-light); font-weight:600;">
-                + Crear Nuevo Proyecto
-              </div>
+              ${isGuest ? '' : `
+                <div class="dropdown-item add-proj-action" style="color: var(--accent-light); font-weight:600;">
+                  + Crear Nuevo Proyecto
+                </div>
+              `}
             </div>
           </div>
  
@@ -276,15 +288,17 @@ export function renderTopbar(): HTMLElement {
               <div class="dropdown-item drawer-db-action" id="drawer-db-backup-btn">
                 📤 Exportar Respaldos (.json)
               </div>
-              <div class="dropdown-item drawer-db-action" id="drawer-db-import-btn-trigger">
-                📥 Importar Respaldos (.json)
-              </div>
-              <div class="dropdown-item drawer-db-action" id="drawer-db-supabase-btn" style="color: var(--accent-light); font-weight: 700;">
-                ☁️ Conectar Supabase
-              </div>
-              <div class="dropdown-item drawer-db-action" id="drawer-db-reset-btn" style="color: var(--red); font-weight: 600;">
-                ⚠️ Restablecer Semilla
-              </div>
+              ${isGuest ? '' : `
+                <div class="dropdown-item drawer-db-action" id="drawer-db-import-btn-trigger">
+                  📥 Importar Respaldos (.json)
+                </div>
+                <div class="dropdown-item drawer-db-action" id="drawer-db-supabase-btn" style="color: var(--accent-light); font-weight: 700;">
+                  ☁️ Conectar Supabase
+                </div>
+                <div class="dropdown-item drawer-db-action" id="drawer-db-reset-btn" style="color: var(--red); font-weight: 600;">
+                  ⚠️ Restablecer Semilla
+                </div>
+              `}
             </div>
           </div>
  
@@ -295,12 +309,12 @@ export function renderTopbar(): HTMLElement {
                 <svg class="portal-ring" viewBox="0 0 100 100">
                   <circle cx="50" cy="50" r="45" />
                 </svg>
-                <div class="avatar hologram-avatar" style="background:var(--accent)">J</div>
+                <div class="avatar hologram-avatar" style="background:${avatarColor}">${profLetter}</div>
                 <span class="online-pulse"></span>
               </div>
               <div class="profile-info">
-                <span class="profile-name">Juan (SM)</span>
-                <span class="profile-role">Scrum Master</span>
+                <span class="profile-name">${profName}</span>
+                <span class="profile-role">${profRoleText}</span>
               </div>
             </div>
             <div class="drawer-profile-actions">
@@ -493,6 +507,8 @@ export function renderTopbar(): HTMLElement {
   // Logout inside drawer
   bindDrawerEvent('#drawer-prof-logout-btn', () => {
     closeDrawer();
+    const stateObj = stateStore.get();
+    stateStore.set({ ...stateObj, userRole: null, activeProjectId: null, activeSprintId: null });
     navigate('landing');
     showToast('Sesión cerrada correctamente', 'success');
   });
@@ -517,6 +533,8 @@ export function renderTopbar(): HTMLElement {
   // Profile Logout Action
   topbar.querySelector('#prof-logout-btn')?.addEventListener('click', () => {
     profMenu.style.display = 'none';
+    const stateObj = stateStore.get();
+    stateStore.set({ ...stateObj, userRole: null, activeProjectId: null, activeSprintId: null });
     navigate('landing');
     showToast('Sesión cerrada correctamente', 'success');
   });

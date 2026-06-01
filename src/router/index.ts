@@ -10,8 +10,12 @@ export function registerRoute(path: string, handler: RouteHandler) {
 
 export function navigate(path: string) {
   const state = stateStore.get();
-  stateStore.set({ ...state, currentPage: path });
-  window.location.hash = path;
+  let targetPath = path;
+  if (!state.userRole && targetPath !== 'landing') {
+    targetPath = 'landing';
+  }
+  stateStore.set({ ...state, currentPage: targetPath });
+  window.location.hash = targetPath;
 
   // Trigger premium topbar loading progress bar
   const loader = document.getElementById('topbar-loader') as HTMLElement;
@@ -29,14 +33,19 @@ export function navigate(path: string) {
     }, 250);
   }
 
-  renderPage(path);
-  updateNav(path);
+  renderPage(targetPath);
+  updateNav(targetPath);
 }
 
 function renderPage(path: string) {
   const content = document.getElementById('page-content');
   if (!content) return;
-  const handler = routes[path] || routes['landing'];
+  const state = stateStore.get();
+  let targetPath = path;
+  if (!state.userRole && targetPath !== 'landing') {
+    targetPath = 'landing';
+  }
+  const handler = routes[targetPath] || routes['landing'];
   content.innerHTML = '';
   const el = handler();
   el.classList.add('fade-in');
@@ -45,7 +54,7 @@ function renderPage(path: string) {
   const sidebar = document.getElementById('sidebar');
   const mainEl = document.querySelector('.main-content') as HTMLElement;
   if (sidebar && mainEl) {
-    if (path === 'landing') {
+    if (targetPath === 'landing') {
       sidebar.style.display = 'none';
       mainEl.style.marginLeft = '0';
     } else {
@@ -63,11 +72,22 @@ function updateNav(path: string) {
 }
 
 export function initRouter() {
-  const hash = window.location.hash.replace('#', '') || 'landing';
+  const state = stateStore.get();
+  const initialHash = window.location.hash.replace('#', '') || 'landing';
+  const hash = (!state.userRole) ? 'landing' : initialHash;
+  if (window.location.hash !== '#' + hash) {
+    window.location.hash = hash;
+  }
   renderPage(hash);
   updateNav(hash);
   window.addEventListener('hashchange', () => {
-    const page = window.location.hash.replace('#', '') || 'dashboard';
+    const stateActive = stateStore.get();
+    const rawPage = window.location.hash.replace('#', '') || 'dashboard';
+    const page = (!stateActive.userRole) ? 'landing' : rawPage;
+    if (window.location.hash !== '#' + page) {
+      window.location.hash = page;
+      return;
+    }
     renderPage(page);
     updateNav(page);
   });

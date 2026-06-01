@@ -1,5 +1,5 @@
 import { getActiveProject } from '../router/index';
-import { meetingStore, sprintStore, memberStore, storyStore, generateId } from '../store/storage';
+import { meetingStore, sprintStore, memberStore, storyStore, generateId, stateStore } from '../store/storage';
 import { showModal, showToast } from '../components/modal';
 import type { Meeting, MeetingType, DailyEntry } from '../types/index';
 
@@ -14,6 +14,7 @@ export function renderMeetings(): HTMLElement {
   let activeTab: MeetingType | 'all' = 'all';
 
   const render = () => {
+    const isGuest = stateStore.get().userRole === 'invitado';
     const meetings = meetingStore.getByProject(project.id);
     const sprints = sprintStore.getByProject(project.id);
     const members = memberStore.getByProject(project.id);
@@ -26,10 +27,12 @@ export function renderMeetings(): HTMLElement {
           <div class="page-title">Reuniones Scrum</div>
           <div class="page-subtitle">${meetings.length} reuniones registradas</div>
         </div>
-        <div style="display:flex;gap:8px">
-          <button class="btn btn-primary" id="new-daily-btn">☀️ Registrar Daily Scrum</button>
-          <button class="btn btn-secondary" id="new-other-btn">+ Otra Reunión</button>
-        </div>
+        ${isGuest ? '' : `
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-primary" id="new-daily-btn">☀️ Registrar Daily Scrum</button>
+            <button class="btn btn-secondary" id="new-other-btn">+ Otra Reunión</button>
+          </div>
+        `}
       </div>
 
       <!-- Stats -->
@@ -77,7 +80,7 @@ export function renderMeetings(): HTMLElement {
                 <div style="display:flex">${att.slice(0,5).map(mem => `<div class="avatar" style="background:${mem!.color};width:24px;height:24px;font-size:10px;margin-left:-6px;border:2px solid var(--bg-secondary)">${mem!.name[0]}</div>`).join('')}</div>
                 <div style="display:flex;gap:4px">
                   <button class="btn btn-secondary btn-sm view-m" data-id="${m.id}" style="font-size:11px">👁 Ver</button>
-                  <button class="btn btn-danger btn-sm del-m" data-id="${m.id}" style="font-size:11px">🗑</button>
+                  ${isGuest ? '' : `<button class="btn btn-danger btn-sm del-m" data-id="${m.id}" style="font-size:11px">🗑</button>`}
                 </div>
               </div>
             </div>

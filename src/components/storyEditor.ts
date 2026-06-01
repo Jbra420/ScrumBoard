@@ -3,7 +3,7 @@
 // ============================================================
 
 import type { UserStory, Task, Priority, StoryStatus, TaskStatus } from '../types/index';
-import { storyStore, taskStore, memberStore, epicStore, sprintStore, generateId } from '../store/storage';
+import { storyStore, taskStore, memberStore, epicStore, sprintStore, generateId, stateStore } from '../store/storage';
 import { showToast } from './modal';
 
 export function openStoryEditorModal(storyId: string, onSave: () => void) {
@@ -48,13 +48,18 @@ function renderEditorModal(baseStory: UserStory, isNew: boolean, onSave: () => v
   const epics = epicStore.getByProject(projectId);
   const sprints = sprintStore.getByProject(projectId);
   const members = memberStore.getByProject(projectId);
+  
+  const isGuest = stateStore.get().userRole === 'invitado';
 
   // Modal Container Overlay
   const overlay = document.createElement('div');
   overlay.className = 'modal-overlay';
   overlay.style.animation = 'fadeIn 0.2s ease';
   
-  const title = isNew ? 'Nueva Historia de Usuario' : `Editar: ${baseStory.id}`;
+  let title = isNew ? 'Nueva Historia de Usuario' : `Editar: ${baseStory.id}`;
+  if (isGuest) {
+    title = `[LECTOR] Detalle de Historia: ${baseStory.id}`;
+  }
   
   overlay.innerHTML = `
     <div class="modal" id="modal-box" style="max-width: 900px; width: 95%;">
@@ -69,30 +74,30 @@ function renderEditorModal(baseStory: UserStory, isNew: boolean, onSave: () => v
           <div style="display: flex; flex-direction: column; gap: 14px;">
             <div class="form-group" style="margin-bottom:0">
               <label class="form-label">Título de la Historia</label>
-              <input class="form-input" id="story-title" type="text" placeholder="Como... quiero... para..." value="${baseStory.title}">
+              <input class="form-input" id="story-title" type="text" placeholder="Como... quiero... para..." value="${baseStory.title}" ${isGuest ? 'disabled' : ''}>
             </div>
             
             <div class="form-group" style="margin-bottom:0">
               <label class="form-label">Descripción</label>
-              <textarea class="form-textarea" id="story-desc" style="min-height: 80px;" placeholder="Detalles de la historia de usuario...">${baseStory.description}</textarea>
+              <textarea class="form-textarea" id="story-desc" style="min-height: 80px;" placeholder="Detalles de la historia de usuario..." ${isGuest ? 'disabled' : ''}>${baseStory.description}</textarea>
             </div>
             
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
               <div class="form-group" style="margin-bottom:0">
                 <label class="form-label">Épica</label>
-                <select class="form-select" id="story-epic">
+                <select class="form-select" id="story-epic" ${isGuest ? 'disabled' : ''}>
                   ${epics.map(e => `<option value="${e.id}" ${baseStory.epicId === e.id ? 'selected' : ''}>${e.name}</option>`).join('')}
                 </select>
               </div>
               <div class="form-group" style="margin-bottom:0">
                 <label class="form-label">Sprint</label>
-                <select class="form-select" id="story-sprint">
+                <select class="form-select" id="story-sprint" ${isGuest ? 'disabled' : ''}>
                   ${sprints.map(s => `<option value="${s.id}" ${baseStory.sprintId === s.id ? 'selected' : ''}>Sprint ${s.number}: ${s.name}</option>`).join('')}
                 </select>
               </div>
               <div class="form-group" style="margin-bottom:0">
                 <label class="form-label">Prioridad</label>
-                <select class="form-select" id="story-priority">
+                <select class="form-select" id="story-priority" ${isGuest ? 'disabled' : ''}>
                   <option value="low" ${baseStory.priority === 'low' ? 'selected' : ''}>Baja</option>
                   <option value="medium" ${baseStory.priority === 'medium' ? 'selected' : ''}>Media</option>
                   <option value="high" ${baseStory.priority === 'high' ? 'selected' : ''}>Alta</option>
@@ -101,11 +106,11 @@ function renderEditorModal(baseStory: UserStory, isNew: boolean, onSave: () => v
               </div>
               <div class="form-group" style="margin-bottom:0">
                 <label class="form-label">Story Points</label>
-                <input class="form-input" id="story-points" type="number" min="1" max="40" value="${baseStory.storyPoints}">
+                <input class="form-input" id="story-points" type="number" min="1" max="40" value="${baseStory.storyPoints}" ${isGuest ? 'disabled' : ''}>
               </div>
               <div class="form-group" style="grid-column: span 2; margin-bottom:0">
                 <label class="form-label">Estado de la Historia</label>
-                <select class="form-select" id="story-status">
+                <select class="form-select" id="story-status" ${isGuest ? 'disabled' : ''}>
                   <option value="todo" ${baseStory.status === 'todo' ? 'selected' : ''}>📋 Por hacer</option>
                   <option value="in-progress" ${baseStory.status === 'in-progress' ? 'selected' : ''}>🔄 En progreso</option>
                   <option value="review" ${baseStory.status === 'review' ? 'selected' : ''}>👁 Revisión</option>
@@ -119,7 +124,7 @@ function renderEditorModal(baseStory: UserStory, isNew: boolean, onSave: () => v
               <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; background: rgba(168,85,247,0.03); padding: 10px; border-radius: var(--radius-sm); border: 1px solid var(--border);" id="members-list">
                 ${members.map(m => `
                   <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 12px; color: var(--text-primary);">
-                    <input type="checkbox" class="member-checkbox" value="${m.id}" ${localAssignees.includes(m.id) ? 'checked' : ''} style="cursor:pointer">
+                    <input type="checkbox" class="member-checkbox" value="${m.id}" ${localAssignees.includes(m.id) ? 'checked' : ''} style="cursor:pointer" ${isGuest ? 'disabled' : ''}>
                     <span class="avatar" style="background:${m.color}; width:20px; height:20px; font-size:9px; border:none">${m.name[0]}</span>
                     <span>${m.name} <span style="font-size: 9px; color: var(--text-muted);">(${m.role.split(' ')[0]})</span></span>
                   </label>
@@ -137,10 +142,12 @@ function renderEditorModal(baseStory: UserStory, isNew: boolean, onSave: () => v
               <div id="criteria-container" style="max-height: 110px; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; margin-bottom: 8px;">
                 <!-- Dynamically Rendered -->
               </div>
-              <div style="display: flex; gap: 6px;">
-                <input class="form-input" id="new-criteria" type="text" placeholder="Nuevo criterio..." style="padding: 6px 12px; font-size: 12px;">
-                <button class="btn btn-secondary btn-sm" id="btn-add-criteria" style="white-space: nowrap;">+ Agregar</button>
-              </div>
+              ${isGuest ? '' : `
+                <div style="display: flex; gap: 6px;">
+                  <input class="form-input" id="new-criteria" type="text" placeholder="Nuevo criterio..." style="padding: 6px 12px; font-size: 12px;">
+                  <button class="btn btn-secondary btn-sm" id="btn-add-criteria" style="white-space: nowrap;">+ Agregar</button>
+                </div>
+              `}
             </div>
             
             <!-- SECTION B: Actividades (Tareas) & Progreso -->
@@ -160,14 +167,16 @@ function renderEditorModal(baseStory: UserStory, isNew: boolean, onSave: () => v
               </div>
               
               <!-- Quick Task Creator -->
-              <div style="display: grid; grid-template-columns: 1.2fr 1fr 50px 38px; gap: 6px; align-items: center;">
-                <input class="form-input" id="new-task-title" type="text" placeholder="Nueva actividad..." style="padding: 6px 10px; font-size: 11px;">
-                <select class="form-select" id="new-task-assignee" style="padding: 6px 10px; font-size: 11px;">
-                  ${members.map(m => `<option value="${m.id}">${m.name}</option>`).join('')}
-                </select>
-                <input class="form-input" id="new-task-hours" type="number" min="1" max="100" value="4" style="padding: 6px 6px; font-size: 11px; text-align: center;" placeholder="Horas">
-                <button class="btn btn-primary btn-sm btn-icon" id="btn-add-task" style="padding: 7px; height: 32px; justify-content: center;">+</button>
-              </div>
+              ${isGuest ? '' : `
+                <div style="display: grid; grid-template-columns: 1.2fr 1fr 50px 38px; gap: 6px; align-items: center;">
+                  <input class="form-input" id="new-task-title" type="text" placeholder="Nueva actividad..." style="padding: 6px 10px; font-size: 11px;">
+                  <select class="form-select" id="new-task-assignee" style="padding: 6px 10px; font-size: 11px;">
+                    ${members.map(m => `<option value="${m.id}">${m.name}</option>`).join('')}
+                  </select>
+                  <input class="form-input" id="new-task-hours" type="number" min="1" max="100" value="4" style="padding: 6px 6px; font-size: 11px; text-align: center;" placeholder="Horas">
+                  <button class="btn btn-primary btn-sm btn-icon" id="btn-add-task" style="padding: 7px; height: 32px; justify-content: center;">+</button>
+                </div>
+              `}
             </div>
           </div>
           
@@ -176,8 +185,8 @@ function renderEditorModal(baseStory: UserStory, isNew: boolean, onSave: () => v
       
       <!-- Footer actions -->
       <div class="modal-footer" style="padding: 16px 24px 20px; border-top: 1px solid var(--border);">
-        <button class="btn btn-secondary" id="modal-cancel">Cancelar</button>
-        <button class="btn btn-primary" id="story-save-btn">Guardar Cambios</button>
+        <button class="btn btn-secondary" id="modal-cancel">${isGuest ? 'Cerrar' : 'Cancelar'}</button>
+        ${isGuest ? '' : '<button class="btn btn-primary" id="story-save-btn">Guardar Cambios</button>'}
       </div>
     </div>
   `;
@@ -195,7 +204,7 @@ function renderEditorModal(baseStory: UserStory, isNew: boolean, onSave: () => v
       <div style="display: flex; align-items: center; justify-between; gap: 8px; background: rgba(255,255,255,0.02); padding: 4px 10px; border-radius: 6px; border: 1px solid var(--border);">
         <span style="color: var(--green); font-size: 12px;">✓</span>
         <span style="flex: 1; font-size: 12px; color: var(--text-secondary); text-overflow: ellipsis; overflow: hidden; white-space: nowrap;" title="${c}">${c}</span>
-        <button class="btn-delete-crit btn btn-secondary btn-icon btn-sm" data-index="${i}" style="padding: 2px 4px; font-size: 10px; border:none; background:none;">✕</button>
+        ${isGuest ? '' : `<button class="btn-delete-crit btn btn-secondary btn-icon btn-sm" data-index="${i}" style="padding: 2px 4px; font-size: 10px; border:none; background:none;">✕</button>`}
       </div>
     `).join('');
 
@@ -234,11 +243,11 @@ function renderEditorModal(baseStory: UserStory, isNew: boolean, onSave: () => v
       const textStyle = t.status === 'done' ? 'text-decoration: line-through; color: var(--text-muted);' : 'color: var(--text-primary);';
       return `
         <div style="display: flex; align-items: center; gap: 8px; background: rgba(168,85,247,0.04); border: 1px solid var(--border); border-radius: 8px; padding: 6px 10px;">
-          <input type="checkbox" class="task-checkbox" data-task-id="${t.id}" ${isChecked} style="cursor:pointer">
+          <input type="checkbox" class="task-checkbox" data-task-id="${t.id}" ${isChecked} style="cursor:pointer" ${isGuest ? 'disabled' : ''}>
           <span style="flex: 1; font-size: 11px; font-weight: 500; ${textStyle}" class="truncate">${t.title}</span>
           ${assigned ? `<div class="avatar" style="background:${assigned.color}; width:18px; height:18px; font-size:8px; border:none;" title="${assigned.name}">${assigned.name[0]}</div>` : ''}
           <span style="font-size: 10px; color: var(--text-muted);">${t.estimatedHours}h</span>
-          <button class="btn-delete-task btn btn-danger btn-sm" data-task-id="${t.id}" style="padding: 2px 5px; font-size: 9px;">🗑</button>
+          ${isGuest ? '' : `<button class="btn-delete-task btn btn-danger btn-sm" data-task-id="${t.id}" style="padding: 2px 5px; font-size: 9px;">🗑</button>`}
         </div>
       `;
     }).join('');

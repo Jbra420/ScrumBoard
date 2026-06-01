@@ -1,5 +1,5 @@
 import { getActiveProject } from '../router/index';
-import { memberStore, taskStore, storyStore, sprintStore, generateId } from '../store/storage';
+import { memberStore, taskStore, storyStore, sprintStore, generateId, stateStore } from '../store/storage';
 import { showModal, showToast } from '../components/modal';
 import type { TeamMember } from '../types/index';
 
@@ -11,6 +11,7 @@ export function renderTeam(): HTMLElement {
   if (!project) { wrap.innerHTML = '<div class="empty-state"><h3>Sin proyecto activo</h3></div>'; return wrap; }
 
   const render = () => {
+    const isGuest = stateStore.get().userRole === 'invitado';
     const members = memberStore.getByProject(project.id);
     const sprints = sprintStore.getByProject(project.id);
     const allTasks = taskStore.getByProject(project.id);
@@ -22,7 +23,7 @@ export function renderTeam(): HTMLElement {
           <div class="page-title">Equipo del Proyecto</div>
           <div class="page-subtitle">${members.length} integrantes · ${project.name}</div>
         </div>
-        <button class="btn btn-primary" id="add-member-btn">+ Agregar Integrante</button>
+        ${isGuest ? '' : '<button class="btn btn-primary" id="add-member-btn">+ Agregar Integrante</button>'}
       </div>
       <div class="grid-3">
         ${members.map(m => {
@@ -45,10 +46,12 @@ export function renderTeam(): HTMLElement {
                     <div style="font-size:11px;color:${m.color};font-weight:600">${m.specialty}</div>
                     <div style="font-size:10px;color:var(--text-muted);margin-top:4px">Sprints: ${sprintNames}</div>
                   </div>
-                  <div style="display:flex;gap:4px">
-                    <button class="btn btn-secondary btn-icon edit-member" data-id="${m.id}" style="padding:5px">✏️</button>
-                    <button class="btn btn-danger btn-icon del-member" data-id="${m.id}" style="padding:5px">🗑</button>
-                  </div>
+                  ${isGuest ? '' : `
+                    <div style="display:flex;gap:4px">
+                      <button class="btn btn-secondary btn-icon edit-member" data-id="${m.id}" style="padding:5px">✏️</button>
+                      <button class="btn btn-danger btn-icon del-member" data-id="${m.id}" style="padding:5px">🗑</button>
+                    </div>
+                  `}
                 </div>
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">
                   <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:10px;text-align:center">

@@ -3,7 +3,7 @@
 // ============================================================
 
 import { getActiveProject } from '../router/index';
-import { storyStore, epicStore, sprintStore, memberStore } from '../store/storage';
+import { storyStore, epicStore, sprintStore, memberStore, stateStore } from '../store/storage';
 import { showToast } from '../components/modal';
 import { openStoryEditorModal, openNewStoryModal } from '../components/storyEditor';
 
@@ -20,6 +20,7 @@ export function renderBacklog(): HTMLElement {
   }
 
   const render = () => {
+    const isGuest = stateStore.get().userRole === 'invitado';
     const stories = storyStore.getByProject(project.id).sort((a, b) => priorityOrder[a.priority] - priorityOrder[b.priority]);
     const epics = epicStore.getByProject(project.id);
     const sprints = sprintStore.getByProject(project.id);
@@ -34,7 +35,7 @@ export function renderBacklog(): HTMLElement {
           <div class="page-title">Product Backlog</div>
           <div class="page-subtitle">${stories.length} historias · ${totalPts} story points totales · ${donePts} completados</div>
         </div>
-        <button class="btn btn-primary" id="add-story-btn">+ Nueva Historia</button>
+        ${isGuest ? '' : '<button class="btn btn-primary" id="add-story-btn">+ Nueva Historia</button>'}
       </div>
       
       ${epics.map(epic => {
@@ -67,8 +68,10 @@ export function renderBacklog(): HTMLElement {
                     <span class="badge badge-${s.priority === 'critical' ? 'critical' : s.priority === 'high' ? 'high' : s.priority === 'medium' ? 'medium' : 'low'}">${priorityLabel[s.priority]}</span>
                     <span style="font-size:11px;color:var(--accent-light);font-weight:700;background:rgba(124,58,237,.15);padding:2px 7px;border-radius:4px">${s.storyPoints}pt</span>
                     <span style="font-size:11px;color:var(--text-muted)">${sprint ? `Sprint ${sprint.number}` : '-'}</span>
-                    <button class="btn btn-secondary btn-sm edit-story" data-id="${s.id}" style="padding:3px 8px">✏️</button>
-                    <button class="btn btn-danger btn-sm del-story" data-id="${s.id}" style="padding:3px 8px">🗑</button>
+                    ${isGuest ? '' : `
+                      <button class="btn btn-secondary btn-sm edit-story" data-id="${s.id}" style="padding:3px 8px">✏️</button>
+                      <button class="btn btn-danger btn-sm del-story" data-id="${s.id}" style="padding:3px 8px">🗑</button>
+                    `}
                   </div>
                 `;
               }).join('')}

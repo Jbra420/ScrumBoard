@@ -26,7 +26,7 @@ let _epics: Epic[] = [];
 let _stories: UserStory[] = [];
 let _tasks: Task[] = [];
 let _meetings: Meeting[] = [];
-let _state: AppState = { activeProjectId: null, activeSprintId: null, currentPage: 'landing' };
+let _state: AppState = { activeProjectId: null, activeSprintId: null, currentPage: 'landing', userRole: null };
 
 /**
  * Initializes the database, loading data from Supabase Cloud (if enabled) or local DB
@@ -147,11 +147,12 @@ export async function initDatabase(): Promise<void> {
             _state = {
               activeProjectId: dbState.activeProjectId,
               activeSprintId: dbState.activeSprintId,
-              currentPage: dbState.currentPage
+              currentPage: dbState.currentPage,
+              userRole: dbState.userRole || null
             };
           } else {
             const localState = localStorage.getItem(KEYS.state);
-            _state = localState ? JSON.parse(localState) : { activeProjectId: null, activeSprintId: null, currentPage: 'landing' };
+            _state = localState ? JSON.parse(localState) : { activeProjectId: null, activeSprintId: null, currentPage: 'landing', userRole: null };
           }
 
           console.log('ScrumBoard Pro — Sincronización exitosa con la nube.');
@@ -181,11 +182,12 @@ export async function initDatabase(): Promise<void> {
       _state = {
         activeProjectId: dbState.activeProjectId,
         activeSprintId: dbState.activeSprintId,
-        currentPage: dbState.currentPage
+        currentPage: dbState.currentPage,
+        userRole: dbState.userRole || null
       };
     } else {
       const localState = localStorage.getItem(KEYS.state);
-      _state = localState ? JSON.parse(localState) : { activeProjectId: null, activeSprintId: null, currentPage: 'landing' };
+      _state = localState ? JSON.parse(localState) : { activeProjectId: null, activeSprintId: null, currentPage: 'landing', userRole: null };
     }
 
     // 4. Recovery fallback to LocalStorage if IndexedDB was completely empty
@@ -227,7 +229,7 @@ export async function initDatabase(): Promise<void> {
     _tasks = getLocal(KEYS.tasks);
     _meetings = getLocal(KEYS.meetings);
     const localState = localStorage.getItem(KEYS.state);
-    _state = localState ? JSON.parse(localState) : { activeProjectId: null, activeSprintId: null, currentPage: 'landing' };
+    _state = localState ? JSON.parse(localState) : { activeProjectId: null, activeSprintId: null, currentPage: 'landing', userRole: null };
   }
 }
 
@@ -235,6 +237,7 @@ export async function initDatabase(): Promise<void> {
  * Resets the entire database, clearing Local DBs and remote Supabase tables, and re-seeds.
  */
 export async function resetDatabaseToSeed(seedFunc: () => void): Promise<void> {
+  if (isReadOnlyUser()) return;
   // Clear local DBs
   await dbService.clearAll();
   Object.values(KEYS).forEach(k => localStorage.removeItem(k));
@@ -258,7 +261,7 @@ export async function resetDatabaseToSeed(seedFunc: () => void): Promise<void> {
   _stories = [];
   _tasks = [];
   _meetings = [];
-  _state = { activeProjectId: null, activeSprintId: null, currentPage: 'landing' };
+  _state = { activeProjectId: null, activeSprintId: null, currentPage: 'landing', userRole: null };
   
   seedFunc();
   await initDatabase();
@@ -268,6 +271,7 @@ export async function resetDatabaseToSeed(seedFunc: () => void): Promise<void> {
 export const projectStore = {
   getAll: (): Project[] => _projects,
   save: (items: Project[]) => {
+    if (isReadOnlyUser()) return;
     const oldItems = [..._projects];
     _projects = items;
     localStorage.setItem(KEYS.projects, JSON.stringify(items));
@@ -312,6 +316,7 @@ export const memberStore = {
   getAll: (): TeamMember[] => _members,
   getByProject: (pid: string): TeamMember[] => _members.filter(m => m.projectId === pid),
   save: (items: TeamMember[]) => {
+    if (isReadOnlyUser()) return;
     const oldItems = [..._members];
     _members = items;
     localStorage.setItem(KEYS.members, JSON.stringify(items));
@@ -356,6 +361,7 @@ export const sprintStore = {
   getAll: (): Sprint[] => _sprints,
   getByProject: (pid: string): Sprint[] => _sprints.filter(s => s.projectId === pid),
   save: (items: Sprint[]) => {
+    if (isReadOnlyUser()) return;
     const oldItems = [..._sprints];
     _sprints = items;
     localStorage.setItem(KEYS.sprints, JSON.stringify(items));
@@ -400,6 +406,7 @@ export const epicStore = {
   getAll: (): Epic[] => _epics,
   getByProject: (pid: string): Epic[] => _epics.filter(e => e.projectId === pid),
   save: (items: Epic[]) => {
+    if (isReadOnlyUser()) return;
     const oldItems = [..._epics];
     _epics = items;
     localStorage.setItem(KEYS.epics, JSON.stringify(items));
@@ -445,6 +452,7 @@ export const storyStore = {
   getByProject: (pid: string): UserStory[] => _stories.filter(s => s.projectId === pid),
   getBySprint: (sid: string): UserStory[] => _stories.filter(s => s.sprintId === sid),
   save: (items: UserStory[]) => {
+    if (isReadOnlyUser()) return;
     const oldItems = [..._stories];
     _stories = items;
     localStorage.setItem(KEYS.stories, JSON.stringify(items));
@@ -491,6 +499,7 @@ export const taskStore = {
   getBySprint: (sid: string): Task[] => _tasks.filter(t => t.sprintId === sid),
   getByStory: (sid: string): Task[] => _tasks.filter(t => t.userStoryId === sid),
   save: (items: Task[]) => {
+    if (isReadOnlyUser()) return;
     const oldItems = [..._tasks];
     _tasks = items;
     localStorage.setItem(KEYS.tasks, JSON.stringify(items));
@@ -536,6 +545,7 @@ export const meetingStore = {
   getByProject: (pid: string): Meeting[] => _meetings.filter(m => m.projectId === pid),
   getBySprint: (sid: string): Meeting[] => _meetings.filter(m => m.sprintId === sid),
   save: (items: Meeting[]) => {
+    if (isReadOnlyUser()) return;
     const oldItems = [..._meetings];
     _meetings = items;
     localStorage.setItem(KEYS.meetings, JSON.stringify(items));
@@ -638,3 +648,7 @@ export const databaseManager = {
 
 // ---- Utils ----
 export const generateId = (): string => Math.random().toString(36).slice(2, 11) + Date.now().toString(36);
+
+export function isReadOnlyUser(): boolean {
+  return _state.userRole === 'invitado';
+}

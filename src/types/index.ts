@@ -109,4 +109,5 @@ export interface AppState {
   activeProjectId: string | null;
   activeSprintId: string | null;
   currentPage: string;
+  userRole?: 'scrum-master' | 'invitado' | null;
 }

@@ -51,6 +51,21 @@ function storyCard(story: UserStory): string {
 }
 
 function bindDragDrop(container: HTMLElement, wrap: HTMLElement) {
+  const isGuest = stateStore.get().userRole === 'invitado';
+  
+  if (isGuest) {
+    container.querySelectorAll<HTMLElement>('.kanban-card').forEach(card => {
+      card.removeAttribute('draggable');
+      card.addEventListener('click', () => {
+        openStoryEditorModal(card.dataset.id!, () => {
+          const page = renderSprints();
+          wrap.replaceWith(page);
+        });
+      });
+    });
+    return;
+  }
+
   container.querySelectorAll<HTMLElement>('.kanban-card').forEach(card => {
     card.addEventListener('dragstart', () => { draggedId = card.dataset.id!; card.classList.add('dragging'); });
     card.addEventListener('dragend', () => { card.classList.remove('dragging'); draggedId = null; });
@@ -125,6 +140,7 @@ export function renderSprints(): HTMLElement {
 
   const sprints = sprintStore.getByProject(project.id);
   const state = stateStore.get();
+  const isGuest = state.userRole === 'invitado';
   
   // Set default currentSprintId if none is active
   currentSprintId = state.activeSprintId || sprints.find(s => s.status === 'active')?.id || sprints[0]?.id || null;
@@ -145,11 +161,13 @@ export function renderSprints(): HTMLElement {
         <div class="page-subtitle">${activeSprint ? `Sprint ${activeSprint.number}: ${activeSprint.goal}` : 'Selecciona o crea un sprint'}</div>
       </div>
       <div style="display:flex; gap:8px;">
-        <button class="btn btn-secondary btn-sm" id="btn-add-sprint" style="background: rgba(168,85,247,0.12); color: var(--accent-light);">+ Nuevo Sprint</button>
-        ${activeSprint ? `
-          <button class="btn btn-secondary btn-sm" id="btn-edit-sprint">✏️ Editar Sprint</button>
-          <button class="btn btn-danger btn-sm" id="btn-delete-sprint">🗑️ Eliminar Sprint</button>
-        ` : ''}
+        ${isGuest ? '' : `
+          <button class="btn btn-secondary btn-sm" id="btn-add-sprint" style="background: rgba(168,85,247,0.12); color: var(--accent-light);">+ Nuevo Sprint</button>
+          ${activeSprint ? `
+            <button class="btn btn-secondary btn-sm" id="btn-edit-sprint">✏️ Editar Sprint</button>
+            <button class="btn btn-danger btn-sm" id="btn-delete-sprint">🗑️ Eliminar Sprint</button>
+          ` : ''}
+        `}
       </div>
     </div>
     
