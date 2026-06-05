@@ -105,9 +105,20 @@ export interface Meeting {
   reviewItems?: string[];
 }
 
+export interface ScrumMasterUser {
+  id: string;
+  username: string;       // Login key (e.g. "DJBRA", "CARLOS")
+  password: string;       // Plain text — local-only app, no backend
+  displayName: string;    // Shown in topbar (e.g. "DJBRA (SM)")
+  avatarColor: string;    // HEX color for avatar
+  isSuperAdmin: boolean;  // Only DJBRA = true, cannot be deleted
+  createdAt: string;
+}
+
 export interface AppState {
   activeProjectId: string | null;
   activeSprintId: string | null;
   currentPage: string;
   userRole?: 'scrum-master' | 'invitado' | null;
+  activeUsername?: string | null; // Username of the logged-in SM
 }

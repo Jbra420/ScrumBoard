@@ -7,6 +7,8 @@ import { stateStore, projectStore, sprintStore, epicStore, databaseManager, rese
 import { seedData } from '../data/seed';
 import { showToast, showModal } from './modal';
 import { supabaseConfig, testSupabaseConnection, uploadLocalToSupabase, downloadCloudToLocal, syncCloudBidirectional } from '../store/supabase';
+import { smUsersStore } from '../store/smUsers';
+import { openSmManagerModal } from './smManagerModal';
 
 const ICONS: Record<string, string> = {
   dashboard: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>`,
@@ -30,10 +32,16 @@ export function renderTopbar(): HTMLElement {
   const state = stateStore.get();
   
   const isGuest = state.userRole === 'invitado';
-  const profLetter = isGuest ? 'I' : 'J';
-  const profName = isGuest ? 'Invitado (Lector)' : 'DJBRA (SM)';
+
+  // Resolve SM profile dynamically from active username
+  const activeUsername = state.activeUsername || 'DJBRA';
+  const activeSMUser = !isGuest ? smUsersStore.getByUsername(activeUsername) : null;
+  const isSuperAdmin = activeSMUser?.isSuperAdmin ?? false;
+  const profLetter = isGuest ? 'I' : (activeSMUser?.displayName?.[0]?.toUpperCase() || activeUsername[0].toUpperCase());
+  const profName = isGuest ? 'Invitado (Lector)' : (activeSMUser?.displayName || activeUsername);
   const profRoleText = isGuest ? 'Invitado Lector' : 'Scrum Master';
-  const avatarColor = isGuest ? 'var(--cyan)' : 'var(--accent)';
+  const avatarColor = isGuest ? 'var(--cyan)' : (activeSMUser?.avatarColor || 'var(--accent)');
+
   
   const navItems = [
     { page: 'dashboard', label: 'Dashboard' },
@@ -200,7 +208,26 @@ export function renderTopbar(): HTMLElement {
               <span class="menu-item-desc">Miembros y roles</span>
             </div>
           </div>
-          
+
+          ${isSuperAdmin ? `
+          <div class="dropdown-item premium-menu-item" id="prof-sm-manager-btn" style="color: var(--accent-light);">
+            <div class="menu-item-icon" style="background: rgba(168,85,247,0.15); color: #C084FC;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>
+                <circle cx="9" cy="7" r="4"/>
+                <path d="M23 21v-2a4 4 0 00-3-3.87"/>
+                <path d="M16 3.13a4 4 0 010 7.75"/>
+                <line x1="19" y1="8" x2="19" y2="14"/>
+                <line x1="22" y1="11" x2="16" y2="11"/>
+              </svg>
+            </div>
+            <div class="menu-item-text">
+              <span class="menu-item-title" style="color: #C084FC; font-weight:700;">Gestionar Scrum Masters</span>
+              <span class="menu-item-desc">Crear y administrar cuentas SM</span>
+            </div>
+          </div>
+          ` : ''}
+
           <div class="dropdown-divider"></div>
           
           <div class="dropdown-item premium-menu-item logout-item" id="prof-logout-btn">
@@ -530,11 +557,17 @@ export function renderTopbar(): HTMLElement {
     navigate('team');
   });
 
+  // SM Manager Action (DJBRA only)
+  topbar.querySelector('#prof-sm-manager-btn')?.addEventListener('click', () => {
+    profMenu.style.display = 'none';
+    openSmManagerModal();
+  });
+
   // Profile Logout Action
   topbar.querySelector('#prof-logout-btn')?.addEventListener('click', () => {
     profMenu.style.display = 'none';
     const stateObj = stateStore.get();
-    stateStore.set({ ...stateObj, userRole: null, activeProjectId: null, activeSprintId: null });
+    stateStore.set({ ...stateObj, userRole: null, activeProjectId: null, activeSprintId: null, activeUsername: null });
     navigate('landing');
     showToast('Sesión cerrada correctamente', 'success');
   });

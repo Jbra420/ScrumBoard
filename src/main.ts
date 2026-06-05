@@ -5,6 +5,8 @@
 import './styles/global.css';
 import { initDatabase, isSeeded, projectStore } from './store/storage';
 import { seedData } from './data/seed';
+import { seedPabloProject } from './data/seedPablo';
+import { seedDefaultSmUsers } from './store/smUsers';
 import { renderTopbar } from './components/topbar';
 import { initToast } from './components/modal';
 import { initQuantumPortal } from './components/quantumPortal';
@@ -46,6 +48,12 @@ async function startApp() {
     console.log('Failsafe: No projects found in database. Seeding default GAD workspace...');
     seedData();
   }
+
+  // Always ensure default SM users exist (PABLO, etc.)
+  seedDefaultSmUsers();
+
+  // Seed Pablo's rehabilitation project if not already present
+  seedPabloProject();
 
   // 3. Register all pages in the routing table
   registerRoute('landing', renderLanding);

@@ -2,6 +2,7 @@ import { projectStore, storyStore, sprintStore, memberStore, stateStore } from '
 import { navigate } from '../router/index';
 import { renderTopbar } from '../components/topbar';
 import { showToast } from '../components/modal';
+import { smUsersStore } from '../store/smUsers';
 
 export function renderLanding(): HTMLElement {
   const wrap = document.createElement('div');
@@ -153,16 +154,17 @@ export function renderLanding(): HTMLElement {
       wrap.replaceWith(page);
     });
     
-    // Bind SM Login Trigger
+    // Bind SM Login Trigger (dynamic multi-user validation)
     wrap.querySelector('#login-sm-btn')?.addEventListener('click', () => {
       const user = (wrap.querySelector('#sm-username') as HTMLInputElement).value.trim();
       const pass = (wrap.querySelector('#sm-password') as HTMLInputElement).value;
-      
-      if (user === 'DJBRA' && pass === 'Master420') {
+
+      const matchedUser = smUsersStore.validate(user, pass);
+      if (matchedUser) {
         errorBox.style.display = 'none';
         const stateStoreObj = stateStore.get();
-        stateStore.set({ ...stateStoreObj, userRole: 'scrum-master' });
-        
+        stateStore.set({ ...stateStoreObj, userRole: 'scrum-master', activeUsername: matchedUser.username });
+
         // Update topbar visuals
         const topbarEl = document.getElementById('topbar-new');
         if (topbarEl) {
@@ -171,7 +173,7 @@ export function renderLanding(): HTMLElement {
           const page = window.location.hash.replace('#', '') || 'landing';
           newTopbar.style.display = page === 'landing' ? 'none' : 'flex';
         }
-        
+
         // Refresh landing to show project selection
         const page = renderLanding();
         wrap.replaceWith(page);
