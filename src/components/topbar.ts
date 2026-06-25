@@ -133,7 +133,8 @@ export function renderTopbar(): HTMLElement {
     </div>
     
     <!-- Central Menu Links -->
-    <nav class="topbar-nav-links">
+    <nav class="topbar-nav-links" id="main-nav-links">
+      <div class="nav-indicator" id="nav-indicator"></div>
       ${navItems.map(({ page, label }) => `
         <a class="nav-link-item ${currentPage === page ? 'active' : ''}" data-page="${page}" href="#${page}">
           ${ICONS[page]} <span>${label}</span>
@@ -375,13 +376,44 @@ export function renderTopbar(): HTMLElement {
     </div>
   `;
 
+  // Magic Sliding Tab Logic
+  const navLinksContainer = topbar.querySelector('#main-nav-links') as HTMLElement;
+  const navIndicator = topbar.querySelector('#nav-indicator') as HTMLElement;
+  const navLinks = topbar.querySelectorAll('.nav-link-item');
+
+  const updateIndicator = (activeEl: HTMLElement) => {
+    if (!activeEl || !navIndicator || !navLinksContainer) return;
+    const containerRect = navLinksContainer.getBoundingClientRect();
+    const activeRect = activeEl.getBoundingClientRect();
+    
+    const left = activeRect.left - containerRect.left;
+    const width = activeRect.width;
+    
+    navIndicator.style.transform = `translateX(${left}px)`;
+    navIndicator.style.width = `${width}px`;
+  };
+
   // Bind Navigation Links
-  topbar.querySelectorAll('.nav-link-item').forEach(el => {
+  navLinks.forEach(el => {
+    if (el.classList.contains('active')) {
+      setTimeout(() => updateIndicator(el as HTMLElement), 50);
+    }
+
     el.addEventListener('click', (e) => {
       e.preventDefault();
+      
+      navLinks.forEach(l => l.classList.remove('active'));
+      el.classList.add('active');
+      updateIndicator(el as HTMLElement);
+
       const page = (el as HTMLElement).dataset.page!;
       navigate(page);
     });
+  });
+
+  window.addEventListener('resize', () => {
+    const activeEl = topbar.querySelector('.nav-link-item.active') as HTMLElement;
+    if (activeEl) updateIndicator(activeEl);
   });
   
   topbar.querySelector('#logo-link')?.addEventListener('click', (e) => {

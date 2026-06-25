@@ -404,28 +404,36 @@ canvas.burndown-chart{width:100%!important;max-height:300px}
    ============================================================ */
 
 .topbar-new {
-  height: 68px;
-  background: rgba(7, 6, 13, 0.72);
-  backdrop-filter: blur(24px) saturate(1.4);
-  border-bottom: 1px solid var(--border);
+  height: 60px;
+  background: rgba(14, 12, 24, 0.65);
+  backdrop-filter: blur(30px) saturate(1.5);
+  border: 1px solid rgba(168, 85, 247, 0.15);
+  border-radius: 30px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 32px;
+  padding: 0 16px 0 24px;
   position: sticky;
-  top: 0;
+  top: 16px;
+  margin: 0 24px 24px 24px;
   z-index: 500;
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6), 0 0 20px rgba(168, 85, 247, 0.05);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.topbar-new:hover {
+  border-color: rgba(168, 85, 247, 0.3);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6), 0 0 30px rgba(168, 85, 247, 0.1);
 }
 
 .topbar-left {
   display: flex;
   align-items: center;
-  gap: 24px;
+  gap: 20px;
 }
 
 .topbar-logo {
-  font-size: 17px;
+  font-size: 16px;
   font-weight: 800;
   text-decoration: none;
   color: var(--text-primary);
@@ -497,17 +505,17 @@ canvas.burndown-chart{width:100%!important;max-height:300px}
 .project-dropdown-menu,
 .db-dropdown-menu {
   position: absolute;
-  top: calc(100% + 8px);
+  top: calc(100% + 12px);
   left: 0;
-  background: linear-gradient(160deg, #0F0D1B, #07060D);
-  border: 1px solid var(--border);
-  border-radius: 12px;
+  background: rgba(15, 12, 28, 0.85);
+  border: 1px solid rgba(168, 85, 247, 0.2);
+  border-radius: 16px;
   min-width: 280px;
   padding: 8px 0;
   display: none;
   flex-direction: column;
   z-index: 1000;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6), 0 0 40px rgba(168, 85, 247, 0.08);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6), 0 0 40px rgba(168, 85, 247, 0.15);
   backdrop-filter: blur(20px);
 }
 
@@ -569,67 +577,68 @@ canvas.burndown-chart{width:100%!important;max-height:300px}
   margin-bottom: 4px;
 }
 
-/* Enlaces de Navegacion */
+/* Enlaces de Navegacion (Magic Sliding Tab) */
 .topbar-nav-links {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 4px;
+  position: relative;
+  background: rgba(0,0,0,0.3);
+  padding: 4px;
+  border-radius: 24px;
+  border: 1px solid rgba(255,255,255,0.03);
+}
+
+.nav-indicator {
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  left: 0;
+  width: 0;
+  border-radius: 20px;
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.25), rgba(99, 102, 241, 0.15));
+  border: 1px solid rgba(168, 85, 247, 0.4);
+  box-shadow: 0 0 20px rgba(168, 85, 247, 0.15);
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), width 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  z-index: 0;
+  pointer-events: none;
 }
 
 .nav-link-item {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 8px 16px;
+  padding: 6px 16px;
   border-radius: 20px;
-  font-size: 12.5px;
+  font-size: 12px;
   font-weight: 600;
   color: var(--text-muted);
   text-decoration: none;
-  border: 1px solid transparent;
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.3s ease;
   position: relative;
-  overflow: hidden;
   z-index: 1;
-}
-
-.nav-link-item::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(135deg, rgba(168, 85, 247, 0.08), rgba(56, 189, 248, 0.04));
-  border-radius: 20px;
-  opacity: 0;
-  transform: scale(0.92);
-  transition: all 0.25s cubic-bezier(0.165, 0.84, 0.44, 1);
-  z-index: -1;
-}
-
-.nav-link-item:hover::before {
-  opacity: 1;
-  transform: scale(1);
 }
 
 .nav-link-item:hover {
   color: var(--text-primary);
-  border-color: rgba(168, 85, 247, 0.15);
-  box-shadow: 0 4px 15px rgba(168, 85, 247, 0.05);
+}
+
+.nav-link-item:hover svg {
+  transform: translateY(-1px);
 }
 
 .nav-link-item.active {
-  color: var(--accent-light);
-  background: linear-gradient(135deg, rgba(168, 85, 247, 0.14), rgba(99, 102, 241, 0.08));
-  border-color: rgba(168, 85, 247, 0.25);
-  box-shadow: 0 0 25px rgba(168, 85, 247, 0.08);
+  color: var(--text-primary);
 }
 
 .nav-link-item svg {
-  opacity: 0.6;
-  transition: opacity 0.2s;
+  opacity: 0.7;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .nav-link-item.active svg {
   opacity: 1;
+  color: var(--accent-light);
 }
 
 /* Panel Derecho */
