@@ -258,8 +258,23 @@ function openDailyModal(projectId: string, sprints: any[], members: any[], onDon
 
 function openOtherMeetingModal(projectId: string, sprints: any[], members: any[], onDone: () => void) {
   const today = new Date().toISOString().split('T')[0];
+  let selectedMembers: string[] = members.map((m: any) => m.id); // By default all selected
+
+  const buildMemberSelector = () => members.map((m: any) => `
+    <div class="member-toggle" data-mid="${m.id}" style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:${selectedMembers.includes(m.id) ? m.color + '15' : 'var(--bg-card)'};border:1px solid ${selectedMembers.includes(m.id) ? m.color + '40' : 'var(--border)'};border-radius:10px;cursor:pointer;transition:all .2s">
+      <div class="avatar" style="background:${m.color};width:32px;height:32px;font-size:13px">${m.name[0]}</div>
+      <div style="flex:1">
+        <div style="font-size:12px;font-weight:600">${m.name}</div>
+        <div style="font-size:10px;color:var(--text-muted)">${m.role}</div>
+      </div>
+      <div style="width:20px;height:20px;border-radius:50%;border:2px solid ${selectedMembers.includes(m.id) ? m.color : 'var(--border)'};display:flex;align-items:center;justify-content:center;font-size:12px;transition:all .2s">
+        ${selectedMembers.includes(m.id) ? '✓' : ''}
+      </div>
+    </div>
+  `).join('');
+
   const body = `
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
       <div class="form-group">
         <label class="form-label">Tipo</label>
         <select class="form-select" name="type" id="mt-type">
@@ -283,11 +298,9 @@ function openOtherMeetingModal(projectId: string, sprints: any[], members: any[]
         <input class="form-input" name="duration" type="number" value="60">
       </div>
     </div>
-    <div class="form-group">
-      <label class="form-label">Asistentes</label>
-      <select class="form-select" name="attendees" multiple style="height:80px">
-        ${members.map((m: any) => `<option value="${m.id}" selected>${m.name} — ${m.role}</option>`).join('')}
-      </select>
+    <div style="font-size:12px;font-weight:700;color:var(--text-primary);margin-bottom:10px">👥 Selecciona los asistentes</div>
+    <div id="member-selector" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px">
+      ${buildMemberSelector()}
     </div>
     <div class="form-group">
       <label class="form-label">Notas</label>
@@ -297,6 +310,22 @@ function openOtherMeetingModal(projectId: string, sprints: any[], members: any[]
   `;
 
   const overlay = showModal('Nueva Reunión', body, () => {});
+  const modalBox = overlay.querySelector('.modal') as HTMLElement;
+  if (modalBox) modalBox.style.maxWidth = '720px';
+
+  const updateToggles = () => {
+    const sel = overlay.querySelector('#member-selector')!;
+    sel.innerHTML = buildMemberSelector();
+    sel.querySelectorAll<HTMLElement>('.member-toggle').forEach(el => {
+      el.addEventListener('click', () => {
+        const mid = el.dataset.mid!;
+        if (selectedMembers.includes(mid)) selectedMembers = selectedMembers.filter(x => x !== mid);
+        else selectedMembers.push(mid);
+        updateToggles();
+      });
+    });
+  };
+  updateToggles();
 
   const updateExtra = () => {
     const t = (overlay.querySelector<HTMLSelectElement>('[name="type"]')?.value || 'planning') as MeetingType;
@@ -314,15 +343,14 @@ function openOtherMeetingModal(projectId: string, sprints: any[], members: any[]
   updateExtra();
 
   overlay.querySelector('#modal-confirm')?.addEventListener('click', () => {
+    if (selectedMembers.length === 0) { showToast('Selecciona al menos un asistente', 'error'); return; }
     const g = (n: string) => (overlay.querySelector<HTMLInputElement>(`[name="${n}"]`)?.value || '').trim();
     const type = g('type') as MeetingType;
-    const attEl = overlay.querySelector<HTMLSelectElement>('[name="attendees"]');
-    const attendees = attEl ? Array.from(attEl.selectedOptions).map(o => o.value) : [];
     let retroNotes, reviewItems;
-    if (type === 'retrospective') retroNotes = { wentWell: g('retro-well').split('\n').filter(Boolean), wentBad: g('retro-bad').split('\n').filter(Boolean), improvements: g('retro-improve').split('\n').filter(Boolean) };
-    if (type === 'review') reviewItems = g('review-items').split('\n').filter(Boolean);
+    if (type === 'retrospective') retroNotes = { wentWell: g('retro-well').split('\\n').filter(Boolean), wentBad: g('retro-bad').split('\\n').filter(Boolean), improvements: g('retro-improve').split('\\n').filter(Boolean) };
+    if (type === 'review') reviewItems = g('review-items').split('\\n').filter(Boolean);
 
-    meetingStore.add({ id: generateId(), projectId, sprintId: g('sprintId'), type, date: g('date'), duration: parseInt(g('duration')) || 60, attendees, notes: g('notes'), retroNotes, reviewItems });
+    meetingStore.add({ id: generateId(), projectId, sprintId: g('sprintId'), type, date: g('date'), duration: parseInt(g('duration')) || 60, attendees: selectedMembers, notes: g('notes'), retroNotes, reviewItems });
     showToast('Reunión registrada ✅', 'success');
     overlay.remove(); onDone();
   });

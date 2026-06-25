@@ -124,6 +124,12 @@ export function renderTopbar(): HTMLElement {
           `}
         </div>
       </div>
+      
+      <!-- Quick Search Bar -->
+      <div class="topbar-search" style="position:relative; margin-left:16px;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--text-muted)"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        <input type="text" id="quick-search-input" placeholder="Buscar (Cmd+K)..." autocomplete="off" style="background:rgba(168,85,247,0.06);border:1px solid var(--border);border-radius:20px;padding:6px 14px 6px 32px;font-size:12px;color:var(--text-primary);width:200px;transition:all 0.3s;outline:none;" onfocus="this.style.width='260px';this.style.borderColor='var(--accent)';this.style.background='rgba(168,85,247,0.1)';" onblur="this.style.width='200px';this.style.borderColor='var(--border)';this.style.background='rgba(168,85,247,0.06)';">
+      </div>
     </div>
     
     <!-- Central Menu Links -->

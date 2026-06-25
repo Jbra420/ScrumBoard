@@ -1764,3 +1764,20 @@ canvas.burndown-chart{width:100%!important;max-height:300px}
 
 
 
+
+/* Hover Reveal for cleaner UI */
+.card-hover-reveal .reveal-content {
+  opacity: 0;
+  max-height: 0;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+  margin-top: 0;
+}
+.card-hover-reveal:hover .reveal-content {
+  opacity: 1;
+  max-height: 150px;
+  margin-top: 8px;
+}
+.card-hover-reveal {
+  cursor: pointer;
+}

@@ -4,7 +4,7 @@
 
 import './styles/global.css';
 import { initDatabase, isSeeded, projectStore } from './store/storage';
-import { seedData } from './data/seed';
+import { seedData, updateGadCanarProject } from './data/seed';
 import { seedPabloProject } from './data/seedPablo';
 import { seedDefaultSmUsers } from './store/smUsers';
 import { renderTopbar } from './components/topbar';
@@ -54,6 +54,12 @@ async function startApp() {
 
   // Seed Pablo's rehabilitation project if not already present
   seedPabloProject();
+
+  // Migrate Gad Cañar data without touching meetings
+  if (localStorage.getItem('gad_municipal_v2_updated') !== 'true') {
+    updateGadCanarProject();
+    localStorage.setItem('gad_municipal_v2_updated', 'true');
+  }
 
   // 3. Register all pages in the routing table
   registerRoute('landing', renderLanding);

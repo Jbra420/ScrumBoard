@@ -109,20 +109,28 @@ export function renderDashboard(): HTMLElement {
       </div>
 
       <!-- Equipo -->
-      <div class="card">
-        <div style="font-size:11px;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px">Equipo (${members.length})</div>
-        <div style="display:flex;flex-direction:column;gap:8px">
+      <div class="card card-hover-reveal">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <div style="font-size:11px;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:.06em;">Equipo (${members.length})</div>
+          <div style="font-size:10px;color:var(--accent-light);">Pasa el ratón para ver</div>
+        </div>
+        
+        <div style="display:flex;align-items:center;gap:4px;margin-bottom:8px">
+          ${members.map(m => avatarColor(m.color, m.name)).join('')}
+        </div>
+
+        <div class="reveal-content" style="display:flex;flex-direction:column;gap:8px">
           ${members.map(m => {
             const memberTasks = tasks.filter(t => t.assigneeId === m.id);
             const memberDone = memberTasks.filter(t => t.status === 'done').length;
             return `
-              <div style="display:flex;align-items:center;gap:10px">
+              <div style="display:flex;align-items:center;gap:10px;padding:6px;background:rgba(255,255,255,0.02);border-radius:8px;border:1px solid var(--border)">
                 ${avatarColor(m.color, m.name)}
                 <div style="flex:1;min-width:0">
                   <div style="font-size:12px;font-weight:600">${m.name} <span style="color:var(--text-muted);font-weight:400">(${m.role})</span></div>
                   <div style="font-size:10px;color:var(--text-muted)">${m.specialty}</div>
                 </div>
-                <div style="text-align:right;font-size:11px;color:var(--green)">${memberDone} tareas ✓</div>
+                <div style="text-align:right;font-size:11px;color:var(--green)">${memberDone} ✓</div>
               </div>
             `;
           }).join('')}
@@ -154,32 +162,43 @@ export function renderDashboard(): HTMLElement {
       </div>
 
       <!-- Reuniones recientes + Stories por estado -->
-      <div class="card">
-        <div style="font-size:11px;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px">Estado del Backlog</div>
-        ${(['todo','in-progress','review','done'] as const).map(st => {
-          const count = stories.filter(s => s.status === st).length;
-          const pct = totalStories > 0 ? (count/totalStories)*100 : 0;
-          return `
-            <div style="margin-bottom:10px">
-              <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px">
-                <span style="color:${statusColor[st]}">${statusLabel[st]}</span>
-                <span style="color:var(--text-muted)">${count} historias</span>
+      <div class="card card-hover-reveal">
+        <div style="font-size:11px;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px;display:flex;justify-content:space-between">
+          <span>Estado del Backlog</span>
+          <span style="font-size:10px;color:var(--accent-light);text-transform:none">Pasa el ratón</span>
+        </div>
+        
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+          <div style="flex:1">${progressBar(totalStories > 0 ? (doneStories/totalStories)*100 : 0, 'var(--green)')}</div>
+          <span style="font-size:11px;color:var(--green);white-space:nowrap;font-weight:700">${doneStories}/${totalStories} done</span>
+        </div>
+
+        <div class="reveal-content" style="max-height:0;overflow-y:auto;">
+          ${(['todo','in-progress','review','done'] as const).map(st => {
+            const count = stories.filter(s => s.status === st).length;
+            const pct = totalStories > 0 ? (count/totalStories)*100 : 0;
+            return `
+              <div style="margin-bottom:10px">
+                <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px">
+                  <span style="color:${statusColor[st]}">${statusLabel[st]}</span>
+                  <span style="color:var(--text-muted)">${count} historias</span>
+                </div>
+                ${progressBar(pct, statusColor[st])}
               </div>
-              ${progressBar(pct, statusColor[st])}
+            `;
+          }).join('')}
+          <div class="sep"></div>
+          <div style="font-size:11px;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">Últimas Reuniones</div>
+          ${recentMeetings.length > 0 ? recentMeetings.map(m => `
+            <div style="display:flex;gap:8px;align-items:center;padding:6px 0;border-bottom:1px solid var(--border)">
+              <span style="font-size:13px">${meetingLabel[m.type]?.split(' ')[0]}</span>
+              <div style="flex:1">
+                <div style="font-size:12px;font-weight:500">${meetingLabel[m.type]?.substring(2)}</div>
+                <div style="font-size:10px;color:var(--text-muted)">${m.date} · ${m.duration} min</div>
+              </div>
             </div>
-          `;
-        }).join('')}
-        <div class="sep"></div>
-        <div style="font-size:11px;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">Últimas Reuniones</div>
-        ${recentMeetings.length > 0 ? recentMeetings.map(m => `
-          <div style="display:flex;gap:8px;align-items:center;padding:6px 0;border-bottom:1px solid var(--border)">
-            <span style="font-size:13px">${meetingLabel[m.type]?.split(' ')[0]}</span>
-            <div style="flex:1">
-              <div style="font-size:12px;font-weight:500">${meetingLabel[m.type]?.substring(2)}</div>
-              <div style="font-size:10px;color:var(--text-muted)">${m.date} · ${m.duration} min</div>
-            </div>
-          </div>
-        `).join('') : '<div style="font-size:12px;color:var(--text-muted)">Sin reuniones registradas</div>'}
+          `).join('') : '<div style="font-size:12px;color:var(--text-muted)">Sin reuniones registradas</div>'}
+        </div>
       </div>
     </div>
   `;
