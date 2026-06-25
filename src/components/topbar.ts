@@ -8,7 +8,6 @@ import { seedData } from '../data/seed';
 import { showToast, showModal } from './modal';
 import { supabaseConfig, testSupabaseConnection, uploadLocalToSupabase, downloadCloudToLocal, syncCloudBidirectional } from '../store/supabase';
 import { smUsersStore } from '../store/smUsers';
-import { openSmManagerModal } from './smManagerModal';
 
 const ICONS: Record<string, string> = {
   dashboard: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>`,
@@ -36,7 +35,6 @@ export function renderTopbar(): HTMLElement {
   // Resolve SM profile dynamically from active username
   const activeUsername = state.activeUsername || 'DJBRA';
   const activeSMUser = !isGuest ? smUsersStore.getByUsername(activeUsername) : null;
-  const isSuperAdmin = activeSMUser?.isSuperAdmin ?? false;
   const profLetter = isGuest ? 'I' : (activeSMUser?.displayName?.[0]?.toUpperCase() || activeUsername[0].toUpperCase());
   const profName = isGuest ? 'Invitado (Lector)' : (activeSMUser?.displayName || activeUsername);
   const profRoleText = isGuest ? 'Invitado Lector' : 'Scrum Master';
@@ -102,33 +100,52 @@ export function renderTopbar(): HTMLElement {
         <span class="logo-lightning">⚡</span> ScrumBoard Pro
       </a>
       
-      <!-- Project Switcher Dropdown -->
-      <div class="project-selector-wrap">
-        <div class="project-selector" id="project-dropdown-btn">
-          <span class="proj-name">${activeProject?.name || 'Selecciona Proyecto'}</span>
-          <span class="proj-arrow">▼</span>
+      <!-- Profile Shortcut Dropdown -->
+      <div class="profile-shortcut-wrap" style="position:relative;">
+        <div class="profile-shortcut" id="profile-shortcut-btn" title="Menú de Usuario" style="cursor:pointer; display:flex; align-items:center; gap:8px; padding:5px 12px; background:rgba(168,85,247,0.03); border:1px solid rgba(168,85,247,0.15); border-radius:20px; transition:all 0.25s cubic-bezier(0.4, 0, 0.2, 1);">
+          <div class="hologram-avatar-container" style="position:relative; width:24px; height:24px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+            <svg class="portal-ring" viewBox="0 0 100 100" style="position:absolute; top:0; left:0; width:100%; height:100%; fill:none; stroke:var(--accent-light); stroke-width:4; stroke-dasharray:283; stroke-dashoffset:283; transform-origin:center; animation:portalRotate 6s linear infinite, portalDash 3s ease-in-out infinite alternate;">
+              <circle cx="50" cy="50" r="45" />
+            </svg>
+            <div class="avatar hologram-avatar" style="width:18px !important; height:18px !important; border-radius:50% !important; background:${avatarColor} !important; font-size:9px !important; font-weight:800; display:flex; align-items:center; justify-content:center; box-shadow:0 0 6px rgba(168,85,247,0.4); z-index:2; margin-left:0 !important;">${profLetter}</div>
+            <span class="online-pulse" style="position:absolute; bottom:0; right:0; width:5px; height:5px; background:var(--green); border:1px solid #07060d; border-radius:50%; box-shadow:0 0 5px var(--green); z-index:3; animation:pulseGlow 1.8s infinite;"></span>
+          </div>
+          <span style="font-size:11.5px; font-weight:700; color:var(--text-primary); max-width:85px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${profName.split(' ')[0]}</span>
+          <span class="profile-chevron" style="font-size:8px; color:var(--text-muted); margin-left:2px; transition:transform 0.2s;">▼</span>
         </div>
-        <div class="project-dropdown-menu" id="project-dropdown-menu">
-          <div class="dropdown-header">Cambiar Proyecto</div>
-          ${allProjects.map(p => `
-            <div class="dropdown-item ${activeProject?.id === p.id ? 'active' : ''}" data-pid="${p.id}">
-              <div style="font-weight: 600;">${p.name}</div>
-              <div style="font-size: 10px; color: var(--text-muted);">${p.description.substring(0, 45)}...</div>
+        
+        <div class="profile-shortcut-menu" id="profile-shortcut-menu" style="position:absolute; top:calc(100% + 10px); left:0; background:rgba(15, 12, 28, 0.85); border:1px solid rgba(168, 85, 247, 0.2); border-radius:16px; min-width:200px; padding:8px 0; display:none; flex-direction:column; z-index:1000; box-shadow:0 20px 60px rgba(0,0,0,0.6), 0 0 40px rgba(168, 85, 247, 0.15); backdrop-filter:blur(20px);">
+          <div class="dropdown-header">Usuario: ${profName}</div>
+          
+          <div class="dropdown-item premium-menu-item" id="shortcut-menu-btn" style="display:flex !important; flex-direction:row !important; align-items:center !important; gap:10px !important; padding:10px 16px !important; cursor:pointer; transition:all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important; border-left:3px solid transparent;">
+            <div class="menu-item-icon team-icon-bg" style="width:24px; height:24px; border-radius:6px; display:flex; align-items:center; justify-content:center; transition:all 0.25s; flex-shrink:0; background:rgba(168,85,247,0.1); border:1px solid rgba(168,85,247,0.2); color:var(--accent-light);">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                <polyline points="9 22 9 12 15 12 15 22"></polyline>
+              </svg>
             </div>
-          `).join('')}
-          ${isGuest ? '' : `
-            <div class="dropdown-divider"></div>
-            <div class="dropdown-item add-proj-action" style="color: var(--accent-light); text-align: center; font-weight:600;">
-              + Crear Nuevo Proyecto
+            <div class="menu-item-text" style="display:flex; flex-direction:column; gap:1px;">
+              <span class="menu-item-title" style="font-size:11px; font-weight:700; color:var(--text-primary);">Volver al Menú</span>
+              <span class="menu-item-desc" style="font-size:9px; color:var(--text-muted);">Ir a la pantalla de inicio</span>
             </div>
-          `}
+          </div>
+
+          <div class="dropdown-divider" style="height:1px; background:var(--border); margin:6px 0;"></div>
+
+          <div class="dropdown-item premium-menu-item logout-item" id="shortcut-logout-btn" style="display:flex !important; flex-direction:row !important; align-items:center !important; gap:10px !important; padding:10px 16px !important; cursor:pointer; transition:all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important; border-left:3px solid transparent;">
+            <div class="menu-item-icon logout-icon-bg" style="width:24px; height:24px; border-radius:6px; display:flex; align-items:center; justify-content:center; transition:all 0.25s; flex-shrink:0; background:rgba(248,113,113,0.1); border:1px solid rgba(248,113,113,0.2); color:var(--red);">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
+                <polyline points="16 17 21 12 16 7" />
+                <line x1="21" y1="12" x2="9" y2="12" />
+              </svg>
+            </div>
+            <div class="menu-item-text" style="display:flex; flex-direction:column; gap:1px;">
+              <span class="menu-item-title" style="font-size:11px; font-weight:700; color:var(--text-primary);">Cerrar Sesión</span>
+              <span class="menu-item-desc" style="font-size:9px; color:var(--text-muted);">Salir del espacio</span>
+            </div>
+          </div>
         </div>
-      </div>
-      
-      <!-- Quick Search Bar -->
-      <div class="topbar-search" style="position:relative; margin-left:16px;">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--text-muted)"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-        <input type="text" id="quick-search-input" placeholder="Buscar (Cmd+K)..." autocomplete="off" style="background:rgba(168,85,247,0.06);border:1px solid var(--border);border-radius:20px;padding:6px 14px 6px 32px;font-size:12px;color:var(--text-primary);width:200px;transition:all 0.3s;outline:none;" onfocus="this.style.width='260px';this.style.borderColor='var(--accent)';this.style.background='rgba(168,85,247,0.1)';" onblur="this.style.width='200px';this.style.borderColor='var(--border)';this.style.background='rgba(168,85,247,0.06)';">
       </div>
     </div>
     
@@ -178,79 +195,6 @@ export function renderTopbar(): HTMLElement {
       <!-- Time -->
       <div class="topbar-clock">
         <span class="clock-flag">EC</span> <span id="time-display">--:--</span>
-      </div>
-      
-      <div class="topbar-divider"></div>
-      
-      <!-- Holographic Profile Portal -->
-      <div class="profile-selector-wrap" style="position:relative;">
-        <div class="topbar-profile" id="profile-dropdown-btn" title="Menú de Perfil" style="cursor:pointer;">
-          <div class="hologram-avatar-container">
-            <svg class="portal-ring" viewBox="0 0 100 100">
-              <circle cx="50" cy="50" r="45" />
-            </svg>
-            <div class="avatar hologram-avatar" style="background:${avatarColor}">${profLetter}</div>
-            <span class="online-pulse"></span>
-          </div>
-          <div class="profile-info">
-            <div class="profile-name">${profName}</div>
-            <div class="profile-role">${profRoleText}</div>
-          </div>
-          <span class="profile-chevron">▼</span>
-        </div>
-        <div class="profile-dropdown-menu" id="profile-dropdown-menu" style="position:absolute; top:calc(100% + 8px); right:0; display:none; flex-direction:column; z-index:1000;">
-          <div class="dropdown-header">Mi Cuenta</div>
-          
-          <div class="dropdown-item premium-menu-item" id="prof-team-btn">
-            <div class="menu-item-icon team-icon-bg">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
-                <circle cx="9" cy="7" r="4" />
-                <path d="M23 21v-2a4 4 0 00-3-3.87" />
-                <path d="M16 3.13a4 4 0 010 7.75" />
-              </svg>
-            </div>
-            <div class="menu-item-text">
-              <span class="menu-item-title">Ver Equipo</span>
-              <span class="menu-item-desc">Miembros y roles</span>
-            </div>
-          </div>
-
-          ${isSuperAdmin ? `
-          <div class="dropdown-item premium-menu-item" id="prof-sm-manager-btn" style="color: var(--accent-light);">
-            <div class="menu-item-icon" style="background: rgba(168,85,247,0.15); color: #C084FC;">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>
-                <circle cx="9" cy="7" r="4"/>
-                <path d="M23 21v-2a4 4 0 00-3-3.87"/>
-                <path d="M16 3.13a4 4 0 010 7.75"/>
-                <line x1="19" y1="8" x2="19" y2="14"/>
-                <line x1="22" y1="11" x2="16" y2="11"/>
-              </svg>
-            </div>
-            <div class="menu-item-text">
-              <span class="menu-item-title" style="color: #C084FC; font-weight:700;">Gestionar Scrum Masters</span>
-              <span class="menu-item-desc">Crear y administrar cuentas SM</span>
-            </div>
-          </div>
-          ` : ''}
-
-          <div class="dropdown-divider"></div>
-          
-          <div class="dropdown-item premium-menu-item logout-item" id="prof-logout-btn">
-            <div class="menu-item-icon logout-icon-bg">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
-                <polyline points="16 17 21 12 16 7" />
-                <line x1="21" y1="12" x2="9" y2="12" />
-              </svg>
-            </div>
-            <div class="menu-item-text">
-              <span class="menu-item-title">Cerrar Sesión</span>
-              <span class="menu-item-desc">Salir del espacio</span>
-            </div>
-          </div>
-        </div>
       </div>
 
       <!-- Hamburger Menu Button -->
@@ -600,71 +544,29 @@ export function renderTopbar(): HTMLElement {
     showToast('Sesión cerrada correctamente', 'success');
   });
 
-  // Profile Dropdown Toggle Logic (Desktop)
-  const profBtn = topbar.querySelector('#profile-dropdown-btn') as HTMLElement;
-  const profMenu = topbar.querySelector('#profile-dropdown-menu') as HTMLElement;
+  // Profile Shortcut Dropdown Toggle Logic (Desktop)
+  const shortcutBtn = topbar.querySelector('#profile-shortcut-btn') as HTMLElement;
+  const shortcutMenu = topbar.querySelector('#profile-shortcut-menu') as HTMLElement;
 
-  profBtn.addEventListener('click', (e) => {
+  shortcutBtn?.addEventListener('click', (e) => {
     e.stopPropagation();
-    profMenu.style.display = profMenu.style.display === 'flex' ? 'none' : 'flex';
-    projMenu.classList.remove('open');
+    shortcutMenu?.classList.toggle('open');
     dbMenu.classList.remove('open');
   });
 
-  // Profile Team Action
-  topbar.querySelector('#prof-team-btn')?.addEventListener('click', () => {
-    profMenu.style.display = 'none';
-    navigate('team');
+  // Shortcut Go to Menu Action (Volver al Menú)
+  topbar.querySelector('#shortcut-menu-btn')?.addEventListener('click', () => {
+    shortcutMenu?.classList.remove('open');
+    navigate('landing');
   });
 
-  // SM Manager Action (DJBRA only)
-  topbar.querySelector('#prof-sm-manager-btn')?.addEventListener('click', () => {
-    profMenu.style.display = 'none';
-    openSmManagerModal();
-  });
-
-  // Profile Logout Action
-  topbar.querySelector('#prof-logout-btn')?.addEventListener('click', () => {
-    profMenu.style.display = 'none';
+  // Shortcut Logout Action (Cerrar Sesión)
+  topbar.querySelector('#shortcut-logout-btn')?.addEventListener('click', () => {
+    shortcutMenu?.classList.remove('open');
     const stateObj = stateStore.get();
     stateStore.set({ ...stateObj, userRole: null, activeProjectId: null, activeSprintId: null, activeUsername: null });
     navigate('landing');
     showToast('Sesión cerrada correctamente', 'success');
-  });
-
-  // Project Dropdown Toggle Logic
-  const projBtn = topbar.querySelector('#project-dropdown-btn') as HTMLElement;
-  const projMenu = topbar.querySelector('#project-dropdown-menu') as HTMLElement;
-  
-  projBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    projMenu.classList.toggle('open');
-    dbMenu.classList.remove('open'); // Close db dropdown
-    profMenu.style.display = 'none';
-  });
-
-  // Project Switch Logic
-  projMenu.querySelectorAll('.dropdown-item[data-pid]').forEach(item => {
-    item.addEventListener('click', () => {
-      const pid = (item as HTMLElement).dataset.pid!;
-      const state = stateStore.get();
-      stateStore.set({ ...state, activeProjectId: pid, activeSprintId: null });
-      showToast('Proyecto cambiado exitosamente', 'success');
-      projMenu.classList.remove('open');
-      
-      // Reload current page to refresh all lists
-      const current = window.location.hash.replace('#', '') || 'dashboard';
-      navigate(current);
-    });
-  });
-
-  // Create project modal in dropdown
-  projMenu.querySelector('.add-proj-action')?.addEventListener('click', () => {
-    projMenu.classList.remove('open');
-    openNewProjectModal(() => {
-      const current = window.location.hash.replace('#', '') || 'dashboard';
-      navigate(current);
-    });
   });
 
   // DB Dropdown Toggle Logic
@@ -674,8 +576,7 @@ export function renderTopbar(): HTMLElement {
   dbBtn.addEventListener('click', (e) => {
     e.stopPropagation();
     dbMenu.classList.toggle('open');
-    projMenu.classList.remove('open'); // Close project dropdown
-    profMenu.style.display = 'none';
+    shortcutMenu?.classList.remove('open');
   });
 
   // DB Backup Action
@@ -723,9 +624,8 @@ export function renderTopbar(): HTMLElement {
 
   // Document Click to Close Dropdowns
   document.addEventListener('click', () => {
-    projMenu.classList.remove('open');
     dbMenu.classList.remove('open');
-    profMenu.style.display = 'none';
+    shortcutMenu?.classList.remove('open');
   });
 
   // Real-time Clock EC Time
