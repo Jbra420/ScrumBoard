@@ -44,8 +44,8 @@ export function renderTopbar(): HTMLElement {
 
   
   const navItems = [
-    { page: 'dashboard', label: 'Dashboard' },
-    { page: 'sprints', label: 'Sprints / Kanban' },
+    { page: 'dashboard', label: 'Panel' },
+    { page: 'sprints', label: 'Kanban' },
     { page: 'backlog', label: 'Backlog' },
     { page: 'meetings', label: 'Reuniones' },
     { page: 'burndown', label: 'Métricas' },
@@ -393,28 +393,50 @@ export function renderTopbar(): HTMLElement {
     navIndicator.style.width = `${width}px`;
   };
 
-  // Bind Navigation Links
-  navLinks.forEach(el => {
-    if (el.classList.contains('active')) {
-      setTimeout(() => updateIndicator(el as HTMLElement), 50);
-    }
+  // Centralized Navigation Sync via Hashchange
+  const syncActiveIndicator = () => {
+    const currentPage = window.location.hash.replace('#', '') || 'dashboard';
+    const activeEl = Array.from(navLinks).find(
+      el => (el as HTMLElement).dataset.page === currentPage
+    ) as HTMLElement | undefined;
 
+    if (activeEl) {
+      navLinks.forEach(l => l.classList.remove('active'));
+      activeEl.classList.add('active');
+      // Delay slightly to ensure layout and sizing are fully computed in the DOM
+      setTimeout(() => updateIndicator(activeEl), 30);
+    }
+  };
+
+  // Bind Navigation Links Clicks
+  navLinks.forEach(el => {
     el.addEventListener('click', (e) => {
       e.preventDefault();
-      
-      navLinks.forEach(l => l.classList.remove('active'));
-      el.classList.add('active');
-      updateIndicator(el as HTMLElement);
-
       const page = (el as HTMLElement).dataset.page!;
       navigate(page);
     });
   });
 
+  window.addEventListener('hashchange', syncActiveIndicator);
   window.addEventListener('resize', () => {
     const activeEl = topbar.querySelector('.nav-link-item.active') as HTMLElement;
     if (activeEl) updateIndicator(activeEl);
   });
+  
+  // Initial syncs to align on load
+  setTimeout(syncActiveIndicator, 50);
+  setTimeout(syncActiveIndicator, 150); // Double-sync failsafe for rendering lag
+
+  // Scroll Morphing Logic (Scroll-Docking)
+  const handleScroll = () => {
+    if (window.scrollY > 15) {
+      topbar.classList.add('scrolled');
+    } else {
+      topbar.classList.remove('scrolled');
+    }
+  };
+  window.addEventListener('scroll', handleScroll, { passive: true });
+  handleScroll(); // Check scroll state immediately on render
   
   topbar.querySelector('#logo-link')?.addEventListener('click', (e) => {
     e.preventDefault();

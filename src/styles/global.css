@@ -418,12 +418,35 @@ canvas.burndown-chart{width:100%!important;max-height:300px}
   margin: 0 24px 24px 24px;
   z-index: 500;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6), 0 0 20px rgba(168, 85, 247, 0.05);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: height 0.4s cubic-bezier(0.25, 1, 0.5, 1),
+              margin 0.4s cubic-bezier(0.25, 1, 0.5, 1),
+              top 0.4s cubic-bezier(0.25, 1, 0.5, 1),
+              border-radius 0.4s cubic-bezier(0.25, 1, 0.5, 1),
+              border-color 0.4s cubic-bezier(0.25, 1, 0.5, 1),
+              background-color 0.4s cubic-bezier(0.25, 1, 0.5, 1),
+              backdrop-filter 0.4s cubic-bezier(0.25, 1, 0.5, 1),
+              box-shadow 0.4s cubic-bezier(0.25, 1, 0.5, 1),
+              padding 0.4s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
 .topbar-new:hover {
   border-color: rgba(168, 85, 247, 0.3);
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6), 0 0 30px rgba(168, 85, 247, 0.1);
+}
+
+.topbar-new.scrolled {
+  height: 52px;
+  top: 0;
+  margin: 0;
+  border-radius: 0;
+  background: rgba(10, 8, 18, 0.85);
+  backdrop-filter: blur(40px) saturate(1.6);
+  border-left: none;
+  border-right: none;
+  border-top: none;
+  border-bottom: 1px solid rgba(168, 85, 247, 0.25);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.7), 0 0 30px rgba(168, 85, 247, 0.08);
+  padding: 0 32px;
 }
 
 .topbar-left {
@@ -596,10 +619,10 @@ canvas.burndown-chart{width:100%!important;max-height:300px}
   left: 0;
   width: 0;
   border-radius: 20px;
-  background: linear-gradient(135deg, rgba(168, 85, 247, 0.25), rgba(99, 102, 241, 0.15));
-  border: 1px solid rgba(168, 85, 247, 0.4);
-  box-shadow: 0 0 20px rgba(168, 85, 247, 0.15);
-  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), width 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.3), rgba(99, 102, 241, 0.2));
+  border: 1px solid rgba(168, 85, 247, 0.45);
+  box-shadow: 0 0 20px rgba(168, 85, 247, 0.2);
+  transition: transform 0.38s cubic-bezier(0.25, 1, 0.5, 1), width 0.38s cubic-bezier(0.25, 1, 0.5, 1);
   z-index: 0;
   pointer-events: none;
 }
@@ -614,7 +637,7 @@ canvas.burndown-chart{width:100%!important;max-height:300px}
   font-weight: 600;
   color: var(--text-muted);
   text-decoration: none;
-  transition: all 0.3s ease;
+  transition: color 0.25s ease, background-color 0.25s ease;
   position: relative;
   z-index: 1;
 }
@@ -623,22 +646,51 @@ canvas.burndown-chart{width:100%!important;max-height:300px}
   color: var(--text-primary);
 }
 
-.nav-link-item:hover svg {
-  transform: translateY(-1px);
-}
-
-.nav-link-item.active {
-  color: var(--text-primary);
-}
-
 .nav-link-item svg {
   opacity: 0.7;
-  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease, color 0.3s ease;
+}
+
+.nav-link-item:hover svg {
+  opacity: 1;
+  color: var(--accent-light);
+  transform: scale(1.2) translateY(-2px);
+  animation: navIconBounce 0.6s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
 .nav-link-item.active svg {
   opacity: 1;
   color: var(--accent-light);
+  transform: scale(1.1);
+}
+
+/* Tab click wave ripple effect simulation */
+.nav-link-item::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 20px;
+  background: rgba(168, 85, 247, 0.15);
+  opacity: 0;
+  transform: scale(0.8);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.nav-link-item:active::after {
+  opacity: 1;
+  transform: scale(1);
+  transition: none;
+}
+
+@keyframes navIconBounce {
+  0%, 100% { transform: scale(1.2) translateY(-2px); }
+  50% { transform: scale(1.2) translateY(-4px); }
+}
+
+.nav-link-item.active {
+  color: var(--text-primary);
 }
 
 /* Panel Derecho */
@@ -1315,6 +1367,9 @@ canvas.burndown-chart{width:100%!important;max-height:300px}
   .topbar-new {
     padding: 0 16px !important;
   }
+  .topbar-new.scrolled {
+    padding: 0 16px !important;
+  }
 }
 
 @media (max-width: 600px) {
@@ -1325,6 +1380,9 @@ canvas.burndown-chart{width:100%!important;max-height:300px}
 
 @media (max-width: 480px) {
   .topbar-new {
+    padding: 0 12px !important;
+  }
+  .topbar-new.scrolled {
     padding: 0 12px !important;
   }
 }
