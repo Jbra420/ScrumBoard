@@ -480,48 +480,53 @@ canvas.burndown-chart{width:100%!important;max-height:300px}
   animation: breathe 3s ease-in-out infinite;
 }
 
-/* Selector de proyectos */
-.project-selector-wrap {
+/* Acceso directo de perfil (Profile Shortcut) */
+.profile-shortcut-wrap {
   position: relative;
 }
 
-.project-selector {
+.profile-shortcut {
+  cursor: pointer;
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 6px 14px;
-  background: rgba(168, 85, 247, 0.05);
-  border: 1px solid var(--border);
+  padding: 5px 12px;
+  background: rgba(168, 85, 247, 0.03);
+  border: 1px solid rgba(168, 85, 247, 0.15);
   border-radius: 20px;
-  cursor: pointer;
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.project-selector:hover {
+.profile-shortcut:hover {
   border-color: var(--accent);
   background: rgba(168, 85, 247, 0.12);
   box-shadow: 0 0 15px rgba(168, 85, 247, 0.15);
 }
 
-.project-selector .proj-name {
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--text-secondary);
-  max-width: 150px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.project-selector .proj-arrow {
-  font-size: 8px;
-  color: var(--text-muted);
-  transition: transform 0.2s;
-}
-
-.project-selector:hover .proj-arrow {
+.profile-shortcut:hover .profile-chevron {
   color: var(--accent-light);
   transform: translateY(1px);
+}
+
+.profile-shortcut-menu {
+  position: absolute;
+  top: calc(100% + 10px);
+  left: 0;
+  background: rgba(15, 12, 28, 0.85);
+  border: 1px solid rgba(168, 85, 247, 0.2);
+  border-radius: 16px;
+  min-width: 200px;
+  padding: 8px 0;
+  display: none;
+  flex-direction: column;
+  z-index: 1000;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6), 0 0 40px rgba(168, 85, 247, 0.15);
+  backdrop-filter: blur(20px);
+}
+
+.profile-shortcut-menu.open {
+  display: flex;
+  animation: modalAppear 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Dropdowns Genericos (Proyectos y DB) */

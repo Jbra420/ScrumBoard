@@ -99,10 +99,9 @@ export function renderTopbar(): HTMLElement {
       <a href="#landing" class="topbar-logo" id="logo-link">
         <span class="logo-lightning">⚡</span> ScrumBoard Pro
       </a>
-      
-      <!-- Profile Shortcut Dropdown -->
-      <div class="profile-shortcut-wrap" style="position:relative;">
-        <div class="profile-shortcut" id="profile-shortcut-btn" title="Menú de Usuario" style="cursor:pointer; display:flex; align-items:center; gap:8px; padding:5px 12px; background:rgba(168,85,247,0.03); border:1px solid rgba(168,85,247,0.15); border-radius:20px; transition:all 0.25s cubic-bezier(0.4, 0, 0.2, 1);">
+        <!-- Profile Shortcut Dropdown -->
+      <div class="profile-shortcut-wrap">
+        <div class="profile-shortcut" id="profile-shortcut-btn" title="Menú de Usuario">
           <div class="hologram-avatar-container" style="position:relative; width:24px; height:24px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
             <svg class="portal-ring" viewBox="0 0 100 100" style="position:absolute; top:0; left:0; width:100%; height:100%; fill:none; stroke:var(--accent-light); stroke-width:4; stroke-dasharray:283; stroke-dashoffset:283; transform-origin:center; animation:portalRotate 6s linear infinite, portalDash 3s ease-in-out infinite alternate;">
               <circle cx="50" cy="50" r="45" />
@@ -114,10 +113,10 @@ export function renderTopbar(): HTMLElement {
           <span class="profile-chevron" style="font-size:8px; color:var(--text-muted); margin-left:2px; transition:transform 0.2s;">▼</span>
         </div>
         
-        <div class="profile-shortcut-menu" id="profile-shortcut-menu" style="position:absolute; top:calc(100% + 10px); left:0; background:rgba(15, 12, 28, 0.85); border:1px solid rgba(168, 85, 247, 0.2); border-radius:16px; min-width:200px; padding:8px 0; display:none; flex-direction:column; z-index:1000; box-shadow:0 20px 60px rgba(0,0,0,0.6), 0 0 40px rgba(168, 85, 247, 0.15); backdrop-filter:blur(20px);">
+        <div class="profile-shortcut-menu" id="profile-shortcut-menu">
           <div class="dropdown-header">Usuario: ${profName}</div>
           
-          <div class="dropdown-item premium-menu-item" id="shortcut-menu-btn" style="display:flex !important; flex-direction:row !important; align-items:center !important; gap:10px !important; padding:10px 16px !important; cursor:pointer; transition:all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important; border-left:3px solid transparent;">
+          <div class="dropdown-item premium-menu-item" id="shortcut-menu-btn">
             <div class="menu-item-icon team-icon-bg" style="width:24px; height:24px; border-radius:6px; display:flex; align-items:center; justify-content:center; transition:all 0.25s; flex-shrink:0; background:rgba(168,85,247,0.1); border:1px solid rgba(168,85,247,0.2); color:var(--accent-light);">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                 <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
@@ -132,7 +131,7 @@ export function renderTopbar(): HTMLElement {
 
           <div class="dropdown-divider" style="height:1px; background:var(--border); margin:6px 0;"></div>
 
-          <div class="dropdown-item premium-menu-item logout-item" id="shortcut-logout-btn" style="display:flex !important; flex-direction:row !important; align-items:center !important; gap:10px !important; padding:10px 16px !important; cursor:pointer; transition:all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important; border-left:3px solid transparent;">
+          <div class="dropdown-item premium-menu-item logout-item" id="shortcut-logout-btn">
             <div class="menu-item-icon logout-icon-bg" style="width:24px; height:24px; border-radius:6px; display:flex; align-items:center; justify-content:center; transition:all 0.25s; flex-shrink:0; background:rgba(248,113,113,0.1); border:1px solid rgba(248,113,113,0.2); color:var(--red);">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                 <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
